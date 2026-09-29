@@ -2,7 +2,7 @@
 /**
  * The impact page — the partner's home page (owner's call, 29 Sep 2026: "an
  * olimalar impact page. just the most important pages showing olimalar in
- * action"). Headline figures (sessions run, attendances, hours, outcomes
+ * action"). Headline figures (activities recorded — owner's relabel, 29 Sep 2026 — attendances, hours, outcomes
  * worked on), what they learned, their latest activities and their clubs.
  * Every figure is computed from the published records in Strapi (impact.ts).
  */
@@ -30,22 +30,22 @@ const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long',
     <ul class="stats">
       <li>
         <span class="stats__n">{nf.format(i.sessions)}</span>
-        <span class="stats__label">Sessions run</span>
+        <span class="stats__label">Activities recorded</span>
       </li>
       <li>
         <span class="stats__n">{nf.format(i.attendances)}</span>
         <span class="stats__label">Attendances</span>
-        <span class="stats__note">Headcounts added up across {nf.format(i.attendanceSessions)} sessions; someone who comes every week is counted each time.</span>
+        <span class="stats__note">Headcounts added up across {nf.format(i.attendanceSessions)} activities; someone who comes every week is counted each time.</span>
       </li>
       <li>
         <span class="stats__n">{nf.format(i.hours)}</span>
         <span class="stats__label">Hours</span>
-        <span class="stats__note">Recorded on {nf.format(i.hourSessions)} of {nf.format(i.sessions)} sessions.</span>
+        <span class="stats__note">Recorded on {nf.format(i.hourSessions)} of {nf.format(i.sessions)} activities.</span>
       </li>
       <li>
         <span class="stats__n">{nf.format(i.outcomes.length)}</span>
         <span class="stats__label">Outcomes worked on</span>
-        <span class="stats__note">Recorded on {nf.format(i.outcomeSessions)} of {nf.format(i.sessions)} sessions.</span>
+        <span class="stats__note">Recorded on {nf.format(i.outcomeSessions)} of {nf.format(i.sessions)} activities.</span>
       </li>
     </ul>
 
@@ -88,7 +88,7 @@ const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long',
             <li>
               <a href={href(`/clubs/${c.slug}/`)}>
                 <h3>{c.name}</h3>
-                <p>{all.filter((a) => a.club?.slug === c.slug).length} sessions</p>
+                <p>{all.filter((a) => a.club?.slug === c.slug).length} activities</p>
               </a>
             </li>
           ))}
