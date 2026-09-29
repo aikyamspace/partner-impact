@@ -1,13 +1,15 @@
 ---
-/** A grid of activity cards: photo, date and club, title. */
+/** A grid of activity cards: photo, date and club, title, and optionally the excerpt. */
 import Photo from './Photo.astro';
 import { href } from '../lib/links';
 import type { Activity } from '../lib/strapi';
 
 interface Props {
   activities: Activity[];
+  /** Show each activity's excerpt under its title. */
+  excerpts?: boolean;
 }
-const { activities } = Astro.props;
+const { activities, excerpts = false } = Astro.props;
 const fmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 ---
 
@@ -18,6 +20,7 @@ const fmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'long', ye
         {a.photo ? <Photo photo={a.photo} widths={[400, 640, 900]} sizes="(min-width: 60rem) 20rem, 90vw" /> : <div class="acard__nophoto" aria-hidden="true" />}
         <span class="acard__meta">{fmt.format(new Date(a.date))}{a.club && <> · {a.club.name}</>}</span>
         <span class="acard__title">{a.title}</span>
+        {excerpts && a.excerpt && <span class="acard__excerpt">{a.excerpt}</span>}
       </a>
     </li>
   ))}

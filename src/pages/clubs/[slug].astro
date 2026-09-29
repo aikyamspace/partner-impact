@@ -14,7 +14,15 @@ const i = impactOf(mine);
 const nf = new Intl.NumberFormat('en-IN');
 ---
 
-<Site title={club.name} description={club.description}>
+<Site
+  title={club.name}
+  current="clubs"
+  metaTitle={club.seo.metaTitle}
+  description={club.seo.metaDescription ?? club.description}
+  ogTitle={club.seo.ogTitle}
+  ogDescription={club.seo.ogDescription}
+  image={club.photo}
+>
   <div class="wrap wrap--wide">
     <section class="impact-head">
       <p class="kicker">Club</p>

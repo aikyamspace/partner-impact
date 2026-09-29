@@ -134,24 +134,6 @@ body {
   margin-inline-start: var(--space-1);
 }
 
-.learnings {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: var(--space-5);
-}
-.learnings blockquote {
-  margin: 0 0 var(--space-2);
-  padding: var(--space-4) var(--space-5);
-  background: var(--surface-wash);
-  border-radius: var(--radius-card);
-}
-.learnings a {
-  font-size: var(--type-small);
-  color: var(--text-secondary);
-}
-
 /* Activity cards: photo, date, title, club. */
 .acards {
   list-style: none;
@@ -187,35 +169,13 @@ body {
   text-decoration-color: transparent;
   text-underline-offset: var(--underline-offset);
 }
+.acard__excerpt {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+}
 .acard a:hover .acard__title,
 .acard a:focus-visible .acard__title {
   text-decoration-color: currentColor;
-}
-
-.clubcards {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: var(--space-6);
-}
-.clubcards a {
-  display: block;
-  padding: var(--space-5);
-  border: var(--rule-hairline) solid var(--border-hairline);
-  border-radius: var(--radius-card);
-  color: inherit;
-  text-decoration: none;
-}
-.clubcards h3 {
-  margin: 0 0 var(--space-2);
-  color: var(--text-green);
-}
-.clubcards p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: var(--type-small);
 }
 
 /* ---- Activity page ---- */
@@ -257,4 +217,35 @@ body {
   font-size: var(--type-small);
   font-weight: var(--weight-medium);
   color: var(--text-primary);
+}
+
+/* Facilitators on the home page: a name and how many activities they ran. */
+.facilist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-3) var(--space-6);
+}
+.facilist li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-block-end: var(--rule-hairline) solid var(--border-hairline);
+}
+.facilist__n {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* The hero kicker and the outline button's border take a light tint of the
+   partner's colour where aikyam.space uses its mint. */
+.homehero__kicker {
+  color: color-mix(in oklab, var(--partner) 20%, white);
+}
+.homeactions .homeactions__cta--outline {
+  border-color: color-mix(in oklab, var(--partner) 30%, white);
 }

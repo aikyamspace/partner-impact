@@ -9,21 +9,47 @@ import '../styles/partner.css';
 import { partner } from '../lib/partner';
 import { brandColours } from '../lib/brand';
 import { href } from '../lib/links';
-import { host } from '../lib/strapi';
+import { getImage } from 'astro:assets';
+import { host, type Photo } from '../lib/strapi';
 
 interface Props {
   title: string;
   description?: string | null;
   current?: 'impact' | 'activities' | 'clubs';
+  /** Owner-written overrides from Strapi, used exactly as written (aikyam.space's rule). */
+  metaTitle?: string | null;
+  ogTitle?: string | null;
+  ogDescription?: string | null;
+  image?: Photo | null;
+  type?: 'website' | 'article';
 }
-const { title, description, current } = Astro.props;
+const { title, description, current, metaTitle, ogTitle, ogDescription, image, type = 'website' } = Astro.props;
 const h = await host();
 const c = brandColours(partner.primary);
-const pageTitle = title === partner.name ? `${partner.name}: impact` : `${title} — ${partner.name}`;
+const pageTitle = metaTitle ?? (title === partner.name ? `${partner.name}: impact` : `${title} — ${partner.name}`);
 const nav = [
   { key: 'impact', label: 'Impact', path: '/' },
   { key: 'activities', label: 'Activities', path: '/activities/' },
+  { key: 'clubs', label: 'Clubs', path: '/clubs/' },
 ];
+if (!Astro.site) throw new Error('Site.astro: astro.config.mjs has no `site`');
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+
+/* The share card: 1200x630 JPEG when the photo is big enough, else the photo
+   at its own size — never enlarged (aikyam.space's SocialMeta.astro rule). A
+   page with no photo of its own uses the partner's photo. */
+const CARD = { width: 1200, height: 630 };
+const shot = image ?? h.photo;
+let og: { src: string; width: number; height: number; alt: string } | null = null;
+if (shot) {
+  const fits = shot.width >= CARD.width && shot.height >= CARD.height;
+  const made = await getImage(
+    fits
+      ? { src: shot.src, width: CARD.width, height: CARD.height, fit: 'cover', format: 'jpg', quality: 80 }
+      : { src: shot.src, width: shot.width, height: shot.height, format: 'jpg', quality: 80 },
+  );
+  og = { src: new URL(made.src, Astro.site).toString(), ...(fits ? CARD : { width: shot.width, height: shot.height }), alt: shot.alt };
+}
 ---
 
 <html lang="en">
@@ -32,8 +58,20 @@ const nav = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
-    <meta property="og:title" content={pageTitle} />
-    {description && <meta property="og:description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    <meta property="og:type" content={type} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content={partner.name} />
+    <meta property="og:locale" content="en_IN" />
+    <meta property="og:title" content={ogTitle ?? pageTitle} />
+    {(ogDescription ?? description) && <meta property="og:description" content={ogDescription ?? description} />}
+    {og && <meta property="og:image" content={og.src} />}
+    {og && <meta property="og:image:width" content={String(og.width)} />}
+    {og && <meta property="og:image:height" content={String(og.height)} />}
+    {og && <meta property="og:image:type" content="image/jpeg" />}
+    {og && <meta property="og:image:alt" content={og.alt} />}
+    <meta name="twitter:card" content={og ? 'summary_large_image' : 'summary'} />
+    <link rel="sitemap" href={href('/sitemap-index.xml')} />
     {/* ⛔ `html:root`, not `:root`: Astro links the bundled stylesheet AFTER
         this tag, and at equal specificity colors.css's own --aik-green won. */}
     <style is:inline set:html={`html:root{--partner:${c.primary};--aik-green:${c.ink};--aik-green-ink:${c.ink};--aik-green-wash:color-mix(in oklab, ${c.primary} 12%, #f7f2ec);}`}></style>

@@ -8,6 +8,7 @@
  *   primary  the partner's brand colour; everything else is aikyam.space's
  *            design system
  *   repo     the GitHub repository GitHub Pages serves the site from
+ *   hero     optional; the activity whose photo is the home page's hero
  *   domain   the custom subdomain once the partner's DNS points at GitHub
  *            Pages; null until then, and the site is served under /<repo>/
  */
@@ -22,6 +23,9 @@ export interface Partner {
   primary: string;
   repo: string;
   domain: string | null;
+  /** Optional: the slug of the activity whose photo leads the home page.
+   *  Unset, the newest activity with a landscape photo is used. */
+  hero?: string | null;
 }
 
 export function loadPartner(slug = process.env.PARTNER ?? 'olimalar'): Partner {

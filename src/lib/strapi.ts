@@ -73,6 +73,22 @@ function count(g: Doc | null | undefined): number | null {
 
 const nonEmpty = (s: string | null | undefined) => (s && s.trim() ? s : null);
 
+/** Owner-written SEO overrides from Strapi; null = not written, use the page's own text. */
+export interface Seo {
+  metaTitle: string | null;
+  metaDescription: string | null;
+  ogTitle: string | null;
+  ogDescription: string | null;
+}
+function seoOf(d: Doc): Seo {
+  return {
+    metaTitle: nonEmpty(d.meta_title),
+    metaDescription: nonEmpty(d.meta_description),
+    ogTitle: nonEmpty(d.og_title),
+    ogDescription: nonEmpty(d.og_description),
+  };
+}
+
 export interface Activity {
   slug: string;
   title: string;
@@ -84,6 +100,9 @@ export interface Activity {
   facilitators: { name: string; slug: null; description: null; feature_image: null; feature_image_width: null; kind: string }[];
   /** Every host of the activity, in the CMS's order — an activity can be co-hosted. */
   hosts: { name: string; kind: string }[];
+  seo: Seo;
+  /** The editor's chosen share image, else the activity photo. */
+  shareImage: Photo | null;
   space: { name: string; locality: string | null } | null;
   attendance: { participants: number | null; facilitators: number | null; audience: number | null };
   toc: import('./toc').ActivityToc;
@@ -105,6 +124,7 @@ export function activities(): Promise<Activity[]> {
       'filters[archived][$eq]': 'false',
       'sort[0]': 'happened_on:desc',
       'populate[photo]': 'true',
+      'populate[og_image]': 'true',
       'populate[club][fields][0]': 'slug',
       'populate[club][fields][1]': 'name',
       'populate[facilitators][fields][0]': 'name',
@@ -138,6 +158,8 @@ export function activities(): Promise<Activity[]> {
       // Unlinked on purpose: a facilitator's own page lives on aikyam.space, not here.
       facilitators: facilitators.map((f: { name: string; kind: string }) => ({ name: f.name, slug: null, description: null, feature_image: null, feature_image_width: null, kind: f.kind })),
       hosts,
+      seo: seoOf(a),
+      shareImage: photoOf(a.og_image, a.title) ?? photoOf(a.photo, a.title),
       space: a.space && !a.space.archived ? { name: a.space.name, locality: a.space.locality ?? null } : null,
       attendance: { participants: count(a.took_part), facilitators: count(a.facilitated), audience: count(a.watched) },
       toc: {
@@ -157,14 +179,14 @@ export function activities(): Promise<Activity[]> {
 }
 
 /** The clubs the partner's activities belong to, with their own description from Strapi. */
-export function clubs(): Promise<{ slug: string; name: string; description: string | null; photo: Photo | null }[]> {
+export function clubs(): Promise<{ slug: string; name: string; description: string | null; photo: Photo | null; seo: Seo }[]> {
   return once('clubs', async () => {
     const slugs = [...new Set((await activities()).map((a) => a.club?.slug).filter(Boolean))] as string[];
     if (slugs.length === 0) return [];
     const params: Record<string, string> = { 'populate[0]': 'photo' };
     slugs.forEach((s, i) => (params[`filters[slug][$in][${i}]`] = s));
     const rows = await findAll('clubs', params);
-    return rows.map((c) => ({ slug: c.slug, name: c.name, description: nonEmpty(c.description), photo: photoOf(c.photo, c.name) }));
+    return rows.map((c) => ({ slug: c.slug, name: c.name, description: nonEmpty(c.description), photo: photoOf(c.photo, c.name), seo: seoOf(c) }));
   });
 }
 

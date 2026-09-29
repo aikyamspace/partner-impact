@@ -1,0 +1,33 @@
+---
+/** The partner's clubs — their own page with a nav link (owner, 29 Sep 2026). */
+import Site from '../../layouts/Site.astro';
+import Photo from '../../components/Photo.astro';
+import { activities, clubs, host } from '../../lib/strapi';
+import { href } from '../../lib/links';
+
+const [all, cs, h] = await Promise.all([activities(), clubs(), host()]);
+const nf = new Intl.NumberFormat('en-IN');
+---
+
+<Site title="Clubs" description={`The clubs ${h.name} runs.`} current="clubs">
+  <div class="wrap wrap--wide">
+    <section class="impact-head">
+      <h1>Clubs</h1>
+    </section>
+    <ul class="acards">
+      {cs.map((c) => {
+        const n = all.filter((a) => a.club?.slug === c.slug).length;
+        return (
+          <li class="acard">
+            <a href={href(`/clubs/${c.slug}/`)}>
+              {c.photo ? <Photo photo={c.photo} widths={[400, 640, 900]} sizes="(min-width: 60rem) 20rem, 90vw" /> : <div class="acard__nophoto" aria-hidden="true" />}
+              <span class="acard__meta">{nf.format(n)} {n === 1 ? 'activity' : 'activities'}</span>
+              <span class="acard__title">{c.name}</span>
+              {c.description && <span class="acard__excerpt">{c.description}</span>}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</Site>

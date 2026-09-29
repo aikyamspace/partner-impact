@@ -2,31 +2,61 @@
 /**
  * The impact page — the partner's home page (owner's call, 29 Sep 2026: "an
  * olimalar impact page. just the most important pages showing olimalar in
- * action"). Headline figures (activities recorded — owner's relabel, 29 Sep 2026 — attendances, hours, outcomes
- * worked on), what they learned, their latest activities and their clubs.
+ * action"). aikyam.space's home hero with one of the partner's own activity
+ * photos (owner, 29 Sep 2026), the headline figures (activities recorded —
+ * owner's relabel, 29 Sep 2026 — attendances, hours, outcomes worked on),
+ * then what matters most on this page (owner, 29 Sep 2026): the activities
+ * and who facilitated them. Clubs have their own page, /clubs/.
  * Every figure is computed from the published records in Strapi (impact.ts).
  */
 import Site from '../layouts/Site.astro';
 import ActivityCards from '../components/ActivityCards.astro';
-import { activities, clubs, host } from '../lib/strapi';
+import Photo from '../components/Photo.astro';
+import { activities, host } from '../lib/strapi';
 import { impactOf } from '../lib/impact';
+import { partner } from '../lib/partner';
 import { href } from '../lib/links';
 
-const [all, h, cs] = await Promise.all([activities(), host(), clubs()]);
+const [all, h] = await Promise.all([activities(), host()]);
 const i = impactOf(all);
 const nf = new Intl.NumberFormat('en-IN');
-const learned = all.filter((a) => a.toc.learnings).slice(0, 3);
 const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(all[all.length - 1].date)) : null;
+
+// The hero photo: the one the partner config names, else the newest activity
+// with a landscape photo — a full-width band crops a portrait one to a strip.
+const heroActivity = partner.hero
+  ? all.find((a) => a.slug === partner.hero)
+  : all.find((a) => a.photo && a.photo.width > a.photo.height);
+if (partner.hero && !heroActivity?.photo) throw new Error(`partners/${partner.slug}.json: hero "${partner.hero}" is not an activity with a photo`);
+const heroPhoto = heroActivity?.photo ?? h.photo;
+
+// Everyone named as facilitating an activity, most activities first.
+const byName = new Map<string, number>();
+for (const a of all) for (const f of a.facilitators) byName.set(f.name, (byName.get(f.name) ?? 0) + 1);
+const facilitators = [...byName].map(([name, times]) => ({ name, times })).sort((x, y) => y.times - x.times || x.name.localeCompare(y.name));
 ---
 
-<Site title={h.name} description={h.description} current="impact">
-  <div class="wrap wrap--wide">
-    <section class="impact-head">
-      <p class="kicker">Impact{firstDate && <> · since {firstDate}</>}</p>
-      <h1>{h.name}</h1>
-      {h.description && <p>{h.description}</p>}
-    </section>
+<Site title={h.name} description={h.description} current="impact" image={heroPhoto}>
+  <section class="homehero">
+    {heroPhoto && <Photo class="homehero__photo" photo={heroPhoto} widths={[640, 960, 1280, 1600, 1920]} sizes="100vw" eager />}
+    <div class="homehero__scrim" aria-hidden="true"></div>
+    <div class="homehero__content wrap wrap--wide">
+      <p class="homehero__kicker">Impact{firstDate && <> · since {firstDate}</>}</p>
+      <h1 class="homehead">{h.name}</h1>
+    </div>
+  </section>
 
+  <div class="homeactions">
+    <div class="homeactions__in wrap wrap--wide">
+      {h.description && <p class="homeactions__line">{h.description}</p>}
+      <div class="homeactions__ctas">
+        <a class="btn homeactions__cta homeactions__cta--solid" href={href('/activities/')}>See all activities</a>
+        <a class="btn homeactions__cta homeactions__cta--outline" href={partner.website}>Visit {partner.name}</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap wrap--wide">
     <ul class="stats">
       <li>
         <span class="stats__n">{nf.format(i.sessions)}</span>
@@ -49,48 +79,29 @@ const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long',
       </li>
     </ul>
 
+    <section class="psection" aria-labelledby="latest-h">
+      <h2 id="latest-h">Latest activities</h2>
+      <ActivityCards activities={all.slice(0, 6)} excerpts />
+      <p><a href={href('/activities/')}>All {nf.format(all.length)} activities</a></p>
+    </section>
+
+    {facilitators.length > 0 && (
+      <section class="psection" aria-labelledby="facilitators-h">
+        <h2 id="facilitators-h">Facilitators</h2>
+        <ul class="facilist">
+          {facilitators.map((f) => (
+            <li><span class="facilist__name">{f.name}</span> <span class="facilist__n">{nf.format(f.times)} {f.times === 1 ? 'activity' : 'activities'}</span></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
     {i.outcomes.length > 0 && (
       <section class="psection" aria-labelledby="outcomes-h">
         <h2 id="outcomes-h">Outcomes worked on</h2>
         <ul class="outcome-list">
           {i.outcomes.map((o) => (
             <li>{o.name}<span class="times">× {o.times}</span></li>
-          ))}
-        </ul>
-      </section>
-    )}
-
-    {learned.length > 0 && (
-      <section class="psection" aria-labelledby="learned-h">
-        <h2 id="learned-h">What we learned</h2>
-        <ul class="learnings">
-          {learned.map((a) => (
-            <li>
-              <blockquote><p>{a.toc.learnings}</p></blockquote>
-              <a href={href(`/activities/${a.slug}/`)}>{a.title}</a>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
-    <section class="psection" aria-labelledby="latest-h">
-      <h2 id="latest-h">Latest activities</h2>
-      <ActivityCards activities={all.slice(0, 6)} />
-      <p><a href={href('/activities/')}>All {nf.format(all.length)} activities</a></p>
-    </section>
-
-    {cs.length > 0 && (
-      <section class="psection" aria-labelledby="clubs-h">
-        <h2 id="clubs-h">Clubs</h2>
-        <ul class="clubcards">
-          {cs.map((c) => (
-            <li>
-              <a href={href(`/clubs/${c.slug}/`)}>
-                <h3>{c.name}</h3>
-                <p>{all.filter((a) => a.club?.slug === c.slug).length} activities</p>
-              </a>
-            </li>
           ))}
         </ul>
       </section>

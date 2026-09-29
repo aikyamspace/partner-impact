@@ -1,6 +1,7 @@
 // @ts-check
 import { readFileSync } from 'node:fs';
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 import reports from './story/integration.mjs';
 
 // Which partner — see src/lib/partner.ts. Read here too, because `site` and
@@ -20,5 +21,6 @@ export default defineConfig({
     // Activity photos are resized at build time from the originals in Strapi.
     remotePatterns: [{ protocol: 'https', hostname: 'cms.folktaler.com' }],
   },
-  integrations: [reports()],
+  // The 404 page is not a page anyone should find through search.
+  integrations: [sitemap({ filter: (page) => !page.endsWith('/404/') }), reports()],
 });

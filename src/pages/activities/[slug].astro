@@ -20,7 +20,16 @@ const { activity } = Astro.props;
 const date = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(activity.date));
 ---
 
-<Site title={activity.title} description={activity.excerpt} current="activities">
+<Site
+  title={activity.title}
+  current="activities"
+  type="article"
+  metaTitle={activity.seo.metaTitle}
+  description={activity.seo.metaDescription ?? activity.excerpt}
+  ogTitle={activity.seo.ogTitle}
+  ogDescription={activity.seo.ogDescription}
+  image={activity.shareImage}
+>
   {activity.photo && (
     <div class="aphoto">
       <Photo photo={activity.photo} widths={[640, 960, 1280, 1600]} sizes="(min-width: 68rem) 64rem, 100vw" eager />
