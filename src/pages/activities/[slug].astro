@@ -3,13 +3,15 @@
  * One activity, in the same order and with the same components as its page on
  * aikyam.space: photo, counts, title, facilitators, then the three groups —
  * Input | Activity (the write-up) + Output | Outcome + Learnings — and the
- * report (PDF) to download.
+ * photo (story card) and report (PDF) to download.
  */
 import Site from '../../layouts/Site.astro';
 import Photo from '../../components/Photo.astro';
 import ActivityCounts from '../../components/ActivityCounts.astro';
 import ActivityFacilitators from '../../components/ActivityFacilitators.astro';
 import ActivityToc from '../../components/ActivityToc.astro';
+import StoryCardLink from '../../components/StoryCardLink.astro';
+import RecordLink from '../../components/RecordLink.astro';
 import { activities } from '../../lib/strapi';
 import { href } from '../../lib/links';
 
@@ -41,7 +43,10 @@ const date = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric',
     audience={activity.attendance.audience}
   >
     <Fragment slot="actions">
-      <a class="report-link" href={href(`/activities/${activity.slug}/record.pdf`)} download={`${activity.slug}.pdf`}>Report</a>
+      {/* aikyam.space's order, photo before report: a photograph is for posting,
+          the report is what somebody prints and files. */}
+      <StoryCardLink slug={activity.slug} />
+      <RecordLink slug={activity.slug} />
     </Fragment>
   </ActivityCounts>
   <div class="wrap wrap--wide ahead">

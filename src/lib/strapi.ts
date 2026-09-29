@@ -99,11 +99,11 @@ export interface Activity {
   club: { slug: string; name: string } | null;
   facilitators: { name: string; slug: null; description: null; feature_image: null; feature_image_width: null; kind: string }[];
   /** Every host of the activity, in the CMS's order — an activity can be co-hosted. */
-  hosts: { name: string; kind: string }[];
+  hosts: { name: string; kind: string; slug: string }[];
   seo: Seo;
   /** The editor's chosen share image, else the activity photo. */
   shareImage: Photo | null;
-  space: { name: string; locality: string | null } | null;
+  space: { slug: string; name: string; locality: string | null } | null;
   attendance: { participants: number | null; facilitators: number | null; audience: number | null };
   toc: import('./toc').ActivityToc;
 }
@@ -132,9 +132,11 @@ export function activities(): Promise<Activity[]> {
       'populate[hosts][fields][0]': 'name',
       'populate[hosts][fields][1]': 'kind',
       'populate[hosts][fields][2]': 'archived',
+      'populate[hosts][fields][3]': 'slug',
       'populate[space][fields][0]': 'name',
       'populate[space][fields][1]': 'locality',
       'populate[space][fields][2]': 'archived',
+      'populate[space][fields][3]': 'slug',
       'populate[took_part]': 'true',
       'populate[facilitated]': 'true',
       'populate[watched]': 'true',
@@ -143,7 +145,7 @@ export function activities(): Promise<Activity[]> {
       'populate[outcomes][fields][1]': 'sort',
     });
     return rows.map((a) => {
-      const hosts = (a.hosts ?? []).filter((h: Doc) => !h.archived).map((h: Doc) => ({ name: h.name, kind: h.kind }));
+      const hosts = (a.hosts ?? []).filter((h: Doc) => !h.archived).map((h: Doc) => ({ name: h.name, kind: h.kind, slug: h.slug }));
       const named = (a.facilitators ?? []).map((f: Doc) => ({ name: f.name, kind: f.kind }));
       // aikyam.space's facilitatorsOf(): with nobody named, a host who is a person facilitated.
       const facilitators = named.length > 0 ? named : hosts.filter((h: { kind: string }) => h.kind === 'person');
@@ -160,7 +162,7 @@ export function activities(): Promise<Activity[]> {
       hosts,
       seo: seoOf(a),
       shareImage: photoOf(a.og_image, a.title) ?? photoOf(a.photo, a.title),
-      space: a.space && !a.space.archived ? { name: a.space.name, locality: a.space.locality ?? null } : null,
+      space: a.space && !a.space.archived ? { slug: a.space.slug, name: a.space.name, locality: a.space.locality ?? null } : null,
       attendance: { participants: count(a.took_part), facilitators: count(a.facilitated), audience: count(a.watched) },
       toc: {
         materials: nonEmpty(a.materials_used),

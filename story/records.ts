@@ -11,6 +11,7 @@
 import { activities, uiStrings } from '../src/lib/strapi';
 import { partner } from '../src/lib/partner';
 import { brandColours } from '../src/lib/brand';
+import { formatHex, interpolate } from 'culori';
 import { durationParts, formatInr, madeLine, paragraphsOf, EVIDENCE_KEY } from '../src/lib/toc';
 
 type Block = { kind: 'p'; text: string } | { kind: 'quote'; text: string } | { kind: 'list'; items: string[] };
@@ -139,12 +140,57 @@ export async function records(siteUrl: string, base: string) {
   });
 }
 
-// `tsx story/records.ts <siteUrl> <base>` prints `{ ink, records }` as JSON:
-// the partner's text-safe colour (for the report's links and headings) and
-// every record.
+/**
+ * The story card for each activity — the "Photo" download, 1080x1920, set by
+ * story/card.typ exactly as aikyam.space sets its own. The credit line follows
+ * aikyam.space's creditLine() (story/lib/cards.ts): "Run by X", or "At P, run
+ * by X" when the place is not itself the host.
+ */
+export async function cards() {
+  const [all, strings] = await Promise.all([activities(), uiStrings()]);
+  const t = (key: string) => {
+    const raw = strings[key];
+    if (raw === undefined) throw new Error(`ui-string "${key}" is missing in Strapi`);
+    return raw;
+  };
+  const date = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+  return all.map((a) => {
+    const names = a.hosts.map((h) => h.name).filter(Boolean);
+    const place = a.space;
+    let credit = '';
+    if (names.length === 0) credit = place ? t('storycard.at_place').replace('{place}', place.name) : '';
+    else {
+      const who = joined(names, t);
+      const sameRoom = place && a.hosts.some((h) => h.slug === place.slug);
+      credit = !place || sameRoom
+        ? t('storycard.run_by').replace('{host}', who)
+        : t('storycard.at_place_run_by').replace('{place}', place.name).replace('{host}', who);
+    }
+    const p = Object.fromEntries(date.formatToParts(new Date(a.date)).map((x) => [x.type, x.value]));
+    return {
+      slug: a.slug,
+      kicker: `${p.weekday} ${p.day} ${p.month} ${p.year}`,
+      title: a.title,
+      credit,
+      photoUrl: a.photo?.src ?? null,
+      photoWidth: a.photo?.width ?? 0,
+      photoHeight: a.photo?.height ?? 0,
+    };
+  });
+}
+
+// `tsx story/records.ts <siteUrl> <base>` prints `{ ink, mint, records, cards }`
+// as JSON: the partner's text-safe colour (the report's links and headings), a
+// light tint of it (where aikyam.space's cards use their mint), every record
+// and every card.
 if (process.argv[1]?.endsWith('records.ts')) {
   const [siteUrl = 'https://aikyamspace.github.io', base = '/'] = process.argv.slice(2);
-  records(siteUrl, base).then((r) =>
-    process.stdout.write(JSON.stringify({ ink: brandColours(partner.primary).ink, records: r })),
+  Promise.all([records(siteUrl, base), cards()]).then(([r, c]) =>
+    process.stdout.write(JSON.stringify({
+      ink: brandColours(partner.primary).ink,
+      mint: formatHex(interpolate([partner.primary, 'white'], 'oklab')(0.8)),
+      records: r,
+      cards: c,
+    })),
   );
 }

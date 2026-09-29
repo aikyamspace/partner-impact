@@ -1,0 +1,42 @@
+---
+/**
+ * The "Report" control: downloads the activity's PDF report
+ * (story/integration.mjs). aikyam.space's RecordLink.astro, with the download
+ * named after the partner rather than aikyam.
+ */
+import { getT } from '../lib/content';
+import { href } from '../lib/links';
+import { partner } from '../lib/partner';
+
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+const t = await getT();
+// The file on disk is record.pdf (a 255-byte slug cannot be a filename); the
+// name a reader sees comes from `download`, cut to 60 characters of slug.
+const fileName = `${partner.slug}-${slug.slice(0, 60).replace(/-+$/, '')}.pdf`;
+---
+
+<a class="sharelink" href={href(`/activities/${slug}/record.pdf`)} download={fileName} aria-label={t('record.download_aria')}>
+  {/* A sheet with its corner turned and two lines of writing — aikyam.space's document glyph. */}
+  <svg
+    class="sharelink__icon"
+    viewBox="0 0 24 24"
+    width="17"
+    height="17"
+    aria-hidden="true"
+    focusable="false"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.9"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+    <path d="M14 3v5h5" />
+    <path d="M9 13h6" />
+    <path d="M9 17h6" />
+  </svg>
+  <span class="sharelink__label">{t('record.download')}</span>
+</a>

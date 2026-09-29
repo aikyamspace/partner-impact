@@ -16,4 +16,11 @@ cp "$SRC/story/report.typ" "$SRC/story/render-report.typ" "$SRC/story/font-cover
 sed "s#path.join(here, '..', '..', 'src'#path.join(here, '..', 'src'#" "$SRC/story/lib/tokens.mjs" > "$DST/story/tokens.mjs"
 grep -q "path.join(here, '..', 'src'" "$DST/story/tokens.mjs" || { echo "copy-shared: tokens.mjs path fix did not apply" >&2; exit 1; }
 cp -R "$SRC/public/fonts" "$DST/public/"
+# The story card ("Photo" download). Its footer prints aikyam.space; here the
+# address is a parameter, `site`, set to the partner's own (story/cards).
+sed -e 's#^  credit: "", // the whole#  site: "aikyam.space", // the address in the footer\n  credit: "", // the whole#' \
+    -e 's#tracking: 0.02em)\[aikyam.space\]#tracking: 0.02em)[\#site]#' "$SRC/story/card.typ" > "$DST/story/card.typ"
+sed 's#^  credit: inputs.at("credit", default: ""),#  credit: inputs.at("credit", default: ""),\n  site: inputs.at("site", default: "aikyam.space"),#' "$SRC/story/render.typ" > "$DST/story/render.typ"
+grep -q '\[#site\]' "$DST/story/card.typ" && grep -q 'site: "aikyam.space", //' "$DST/story/card.typ" && grep -q 'inputs.at("site"' "$DST/story/render.typ" \
+  || { echo "copy-shared: card.typ footer parameter did not apply" >&2; exit 1; }
 echo "copied from $SRC"

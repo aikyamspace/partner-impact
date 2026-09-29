@@ -1,7 +1,7 @@
 /**
- * The PDF report for every activity, written at the end of `astro build` to
- * dist/activities/<slug>/record.pdf — the file each activity page's "Report"
- * link downloads.
+ * The PDF report and the story card for every activity, written at the end of
+ * `astro build` to dist/activities/<slug>/record.pdf and story.jpg — the files
+ * each activity page's "Report" and "Photo" links download.
  *
  * ⭐ The same A4 template aikyam.space prints its reports with (report.typ,
  * copied), with one change: the partner's own text-safe colour replaces aikyam
@@ -23,11 +23,14 @@ const execFileAsync = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.join(here, '..');
 
-/** Long edge of the cached photograph. The report's photo band is 110mm by the
- *  text column; 1600px is well past print sharpness for that. */
-const PHOTO_EDGE = 1600;
+/** The story card's photo band is a 1080 SQUARE, so the cached photo has at
+ *  least 1080 on its SHORT edge; the reports use the same cache (aikyam.space
+ *  does the same). */
+const SQUARE = 1080;
 /** ⛔ Part of the cache filename: bump it whenever the transform changes. */
-const PHOTO_VARIANT = 'r1600.jpg';
+const PHOTO_VARIANT = 'sq1080.jpg';
+/** The story card: 1080x1920, the size every phone's story format expects. */
+const CARD = { width: 1080, height: 1920 };
 /** ⛔ A safety cap, not a design limit (aikyam.space, 29 Sep 2026). */
 const MAX_PAGES = 8;
 const CONCURRENCY = 4;
@@ -35,12 +38,14 @@ const CONCURRENCY = 4;
 export default function reports() {
   let siteUrl = null;
   let base = '/';
+  let siteName = null;
   return {
     name: 'partner-impact:reports',
     hooks: {
       'astro:config:done': ({ config }) => {
         siteUrl = config.site;
         base = config.base;
+        siteName = cardSite(config);
       },
       'astro:build:done': async ({ dir, logger }) => {
         const dist = fileURLToPath(dir);
@@ -49,16 +54,22 @@ export default function reports() {
           throw new Error('reports: `typst` is not on PATH. Install it (`brew install typst`).');
         }
 
-        const { ink, records } = await loadRecords(siteUrl, base);
+        const { ink, mint, records, cards } = await loadRecords(siteUrl, base);
         writeFileSync(
           path.join(here, 'tokens.typ'),
-          tokensAsTypst({ ...readTokens(), 'aik-green-ink': ink }),
+          tokensAsTypst({ ...readTokens(), 'aik-green-ink': ink, 'aik-mint': mint }),
         );
         const coverage = new Set(
           JSON.parse(readFileSync(path.join(here, 'font-coverage.json'), 'utf8')).codepoints,
         );
         guardText(records, coverage, logger);
-        const photos = await cachePhotos(records, logger);
+        // A card prints only a date, the title and the credit: any character
+        // no shipped font can draw fails the build, as the title does above.
+        const undrawable = cards.flatMap((c) =>
+          [...`${c.kicker}${c.title}${c.credit}`].filter((ch) => !coverage.has(ch.codePointAt(0))).map((ch) => `${c.slug}: ${codepoint(ch)}`));
+        if (undrawable.length) throw new Error(`cards: characters no shipped font can draw:\n  ${[...new Set(undrawable)].join('\n  ')}`);
+        const photos = await cachePhotos([...records, ...cards], logger);
+        await renderCards(cards, photos, dist, siteName, logger);
 
         const jsonDir = path.join(repo, '.story-records');
         rmSync(jsonDir, { recursive: true, force: true });
@@ -194,7 +205,7 @@ async function cachePhotos(records, logger) {
         if (original.length === 0) throw new Error(`reports: photo ${url} came back empty`);
         const body = await sharp(original)
           .rotate()
-          .resize(PHOTO_EDGE, PHOTO_EDGE, { fit: 'inside', withoutEnlargement: true })
+          .resize(SQUARE, SQUARE, { fit: 'outside', withoutEnlargement: true })
           .jpeg({ quality: 80 })
           .toBuffer();
         const tmp = `${file}.part`;
@@ -208,13 +219,73 @@ async function cachePhotos(records, logger) {
   return paths;
 }
 
+/**
+ * The address printed at the foot of every story card: the partner's own
+ * impact domain once it is live, else the partner's website.
+ */
+function cardSite(config) {
+  const slug = process.env.PARTNER ?? 'olimalar';
+  const partner = JSON.parse(readFileSync(path.join(repo, 'partners', `${slug}.json`), 'utf8'));
+  return partner.domain ?? new URL(partner.website).hostname.replace(/^www\./, '');
+}
+
+/**
+ * One story card per activity at dist/activities/<slug>/story.jpg, set by
+ * card.typ. ⛔ Typst writes PNG, not JPEG, so sharp encodes it — aikyam.space
+ * uses macOS `sips` here, which the Ubuntu runner does not have.
+ */
+async function renderCards(cards, photos, dist, site, logger) {
+  const started = Date.now();
+  const limit = pLimit(CONCURRENCY);
+  const sizes = await Promise.all(cards.map((card) => limit(async () => {
+    const out = insideDist(dist, path.join(dist, 'activities', card.slug, 'story.jpg'));
+    mkdirSync(path.dirname(out), { recursive: true });
+    const args = [
+      'compile',
+      '--root', repo,
+      '--font-path', path.join(here, 'fonts'),
+      '--ignore-system-fonts',
+      '--ppi', '72',
+      '--format', 'png',
+      '--input', `kicker=${card.kicker}`,
+      '--input', `title=${card.title}`,
+      '--input', `credit=${card.credit}`,
+      '--input', `site=${site}`,
+      '--input', 'malayalam=0',
+    ];
+    const photo = card.photoUrl ? photos.get(card.photoUrl) : null;
+    if (photo) {
+      args.push('--input', `photo=/${path.relative(repo, photo)}`);
+      args.push('--input', `photo_w=${card.photoWidth}`);
+      args.push('--input', `photo_h=${card.photoHeight}`);
+    }
+    args.push(path.join(here, 'render.typ'), '-');
+    const { stdout, stderr } = await execFileAsync('typst', args, { cwd: repo, encoding: 'buffer', maxBuffer: 64 * 1024 * 1024 });
+    if (/did not converge/.test(stderr.toString())) throw new Error(`cards: ${card.slug}: layout did not converge`);
+    const jpeg = await sharp(stdout).jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+    // ⛔ The size is read back out of the file: a card that is not 1080x1920
+    // is letterboxed or cropped by every phone.
+    const { width, height } = await sharp(jpeg).metadata();
+    if (width !== CARD.width || height !== CARD.height) {
+      throw new Error(`cards: ${card.slug} came out ${width}x${height}, not ${CARD.width}x${CARD.height}`);
+    }
+    writeFileSync(out, jpeg);
+    return jpeg.length;
+  })));
+  const bytes = sizes.reduce((a, b) => a + b, 0);
+  logger.info(`${cards.length} story cards in ${((Date.now() - started) / 1000).toFixed(1)}s, ${(bytes / cards.length / 1024).toFixed(0)} KB each`);
+}
+
 /** ⛔ The slug is CMS text; path.join resolves `..`, so check the write stays in dist. */
-function recordPath(dist, record) {
-  const file = path.join(dist, 'activities', record.slug, 'record.pdf');
+function insideDist(dist, file) {
   if (!path.resolve(file).startsWith(path.resolve(dist) + path.sep)) {
     throw new Error(`reports: refusing to write outside dist: ${file}`);
   }
   return file;
+}
+
+function recordPath(dist, record) {
+  return insideDist(dist, path.join(dist, 'activities', record.slug, 'record.pdf'));
 }
 
 async function renderRecord(record, photos, dist) {
