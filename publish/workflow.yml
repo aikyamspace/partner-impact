@@ -45,6 +45,9 @@ jobs:
           typst-version: 0.15.1
       - run: npm ci
       - run: npm test
+      # Astro's build strips types without checking them.
+      - run: npx astro check
+      - run: npx tsc --noEmit
       - run: npm run build
         env:
           STRAPI_TOKEN: ${{ secrets.STRAPI_TOKEN }}

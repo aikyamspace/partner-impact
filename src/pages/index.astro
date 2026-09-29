@@ -35,7 +35,7 @@ const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long',
       <li>
         <span class="stats__n">{nf.format(i.attendances)}</span>
         <span class="stats__label">Attendances</span>
-        <span class="stats__note">Headcounts added up across {nf.format(i.attendanceSessions)} sessions; a child who comes every week is counted each time.</span>
+        <span class="stats__note">Headcounts added up across {nf.format(i.attendanceSessions)} sessions; someone who comes every week is counted each time.</span>
       </li>
       <li>
         <span class="stats__n">{nf.format(i.hours)}</span>
@@ -45,6 +45,7 @@ const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long',
       <li>
         <span class="stats__n">{nf.format(i.outcomes.length)}</span>
         <span class="stats__label">Outcomes worked on</span>
+        <span class="stats__note">Recorded on {nf.format(i.outcomeSessions)} of {nf.format(i.sessions)} sessions.</span>
       </li>
     </ul>
 

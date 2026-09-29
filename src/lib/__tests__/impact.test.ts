@@ -16,8 +16,9 @@ describe('impactOf', () => {
   it('counts each outcome once per session that worked on it, most often first', () => {
     const i = impactOf([act(1, { outcomes: ['Teamwork', 'Empathy'] }), act(1, { outcomes: ['Teamwork'] })]);
     expect(i.outcomes).toEqual([{ name: 'Teamwork', times: 2 }, { name: 'Empathy', times: 1 }]);
+    expect(i.outcomeSessions).toBe(2);
   });
   it('is all zeros for no activities', () => {
-    expect(impactOf([])).toEqual({ sessions: 0, attendances: 0, attendanceSessions: 0, hours: 0, hourSessions: 0, outcomes: [] });
+    expect(impactOf([])).toEqual({ sessions: 0, attendances: 0, attendanceSessions: 0, hours: 0, hourSessions: 0, outcomes: [], outcomeSessions: 0 });
   });
 });

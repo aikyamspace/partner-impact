@@ -61,6 +61,11 @@ export function blocksOf(html: string): Block[] {
   return blocks;
 }
 
+function joined(names: string[], t: (key: string) => string): string {
+  if (names.length === 1) return names[0];
+  return t('storycard.hosts_joined').replace('{first}', names.slice(0, -1).join(', ')).replace('{last}', names[names.length - 1]);
+}
+
 const LICENSE_URL = 'https://creativecommons.org/licenses/by/4.0/';
 
 export async function records(siteUrl: string, base: string) {
@@ -82,10 +87,17 @@ export async function records(siteUrl: string, base: string) {
     count('record.took_part', a.attendance.participants);
     count('record.facilitators', a.attendance.facilitators);
     count('record.watched', a.attendance.audience);
-    facts.push({ label: t('record.run_by'), value: partner.name, figure: false });
+    // Same facts, same order, same rules as aikyam.space's story/lib/records.ts.
+    if (a.space) facts.push({ label: t('record.where'), value: a.space.locality ? `${a.space.name}, ${a.space.locality}` : a.space.name, figure: false });
     if (a.club) facts.push({ label: t('record.club'), value: a.club.name, figure: false });
-    const names = a.facilitators.map((f) => f.name).filter((n) => n && n !== partner.name);
-    if (names.length) facts.push({ label: t('record.facilitated_by'), value: names.join(', '), figure: false });
+    const hostNames = a.hosts.map((h) => h.name).filter(Boolean);
+    const runBy = hostNames.length ? joined(hostNames, t) : null;
+    if (runBy) facts.push({ label: t('record.run_by'), value: runBy, figure: false });
+    const people = a.facilitators.map((f) => f.name).filter(Boolean);
+    // Not printed when it repeats "Run by" word for word (aikyam.space, 17 Sep 2026).
+    if (people.length && joined(people, t) !== runBy) {
+      facts.push({ label: t('record.facilitated_by'), value: joined(people, t), figure: false });
+    }
 
     const toc = a.toc;
     const input: Fact[] = [];

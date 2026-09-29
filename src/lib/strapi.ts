@@ -82,6 +82,9 @@ export interface Activity {
   photo: Photo | null;
   club: { slug: string; name: string } | null;
   facilitators: { name: string; slug: null; description: null; feature_image: null; feature_image_width: null; kind: string }[];
+  /** Every host of the activity, in the CMS's order — an activity can be co-hosted. */
+  hosts: { name: string; kind: string }[];
+  space: { name: string; locality: string | null } | null;
   attendance: { participants: number | null; facilitators: number | null; audience: number | null };
   toc: import('./toc').ActivityToc;
 }
@@ -106,6 +109,12 @@ export function activities(): Promise<Activity[]> {
       'populate[club][fields][1]': 'name',
       'populate[facilitators][fields][0]': 'name',
       'populate[facilitators][fields][1]': 'kind',
+      'populate[hosts][fields][0]': 'name',
+      'populate[hosts][fields][1]': 'kind',
+      'populate[hosts][fields][2]': 'archived',
+      'populate[space][fields][0]': 'name',
+      'populate[space][fields][1]': 'locality',
+      'populate[space][fields][2]': 'archived',
       'populate[took_part]': 'true',
       'populate[facilitated]': 'true',
       'populate[watched]': 'true',
@@ -113,7 +122,12 @@ export function activities(): Promise<Activity[]> {
       'populate[outcomes][fields][0]': 'name',
       'populate[outcomes][fields][1]': 'sort',
     });
-    return rows.map((a) => ({
+    return rows.map((a) => {
+      const hosts = (a.hosts ?? []).filter((h: Doc) => !h.archived).map((h: Doc) => ({ name: h.name, kind: h.kind }));
+      const named = (a.facilitators ?? []).map((f: Doc) => ({ name: f.name, kind: f.kind }));
+      // aikyam.space's facilitatorsOf(): with nobody named, a host who is a person facilitated.
+      const facilitators = named.length > 0 ? named : hosts.filter((h: { kind: string }) => h.kind === 'person');
+      return {
       slug: a.slug,
       title: a.title,
       date: a.happened_on,
@@ -122,7 +136,9 @@ export function activities(): Promise<Activity[]> {
       photo: photoOf(a.photo, a.title),
       club: a.club ? { slug: a.club.slug, name: a.club.name } : null,
       // Unlinked on purpose: a facilitator's own page lives on aikyam.space, not here.
-      facilitators: (a.facilitators ?? []).map((f: Doc) => ({ name: f.name, slug: null, description: null, feature_image: null, feature_image_width: null, kind: f.kind })),
+      facilitators: facilitators.map((f: { name: string; kind: string }) => ({ name: f.name, slug: null, description: null, feature_image: null, feature_image_width: null, kind: f.kind })),
+      hosts,
+      space: a.space && !a.space.archived ? { name: a.space.name, locality: a.space.locality ?? null } : null,
       attendance: { participants: count(a.took_part), facilitators: count(a.facilitated), audience: count(a.watched) },
       toc: {
         materials: nonEmpty(a.materials_used),
@@ -135,7 +151,8 @@ export function activities(): Promise<Activity[]> {
         evidenceType: a.evidence_type ?? null,
         learnings: nonEmpty(a.learnings),
       },
-    }));
+      };
+    });
   });
 }
 

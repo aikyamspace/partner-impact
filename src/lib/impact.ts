@@ -17,6 +17,7 @@ export interface Impact {
   hours: number;
   hourSessions: number;
   outcomes: { name: string; times: number }[];
+  outcomeSessions: number;
 }
 
 export function impactOf(activities: Pick<Activity, 'attendance' | 'toc'>[]): Impact {
@@ -24,6 +25,7 @@ export function impactOf(activities: Pick<Activity, 'attendance' | 'toc'>[]): Im
   let attendanceSessions = 0;
   let hours = 0;
   let hourSessions = 0;
+  let outcomeSessions = 0;
   const outcomeTimes = new Map<string, number>();
   for (const a of activities) {
     if (a.attendance.participants !== null) {
@@ -34,8 +36,9 @@ export function impactOf(activities: Pick<Activity, 'attendance' | 'toc'>[]): Im
       hours += a.toc.hours;
       hourSessions++;
     }
+    if (a.toc.outcomes.length > 0) outcomeSessions++;
     for (const o of a.toc.outcomes) outcomeTimes.set(o, (outcomeTimes.get(o) ?? 0) + 1);
   }
   const outcomes = [...outcomeTimes].map(([name, times]) => ({ name, times })).sort((x, y) => y.times - x.times || x.name.localeCompare(y.name));
-  return { sessions: activities.length, attendances, attendanceSessions, hours: Math.round(hours * 10) / 10, hourSessions, outcomes };
+  return { sessions: activities.length, attendances, attendanceSessions, hours: Math.round(hours * 10) / 10, hourSessions, outcomes, outcomeSessions };
 }
