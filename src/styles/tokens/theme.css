@@ -1,0 +1,217 @@
+/* aikyam space design system — semantic tokens
+ *
+ * THIS FILE IS THE CONTRACT. Components reference these names, never the raw
+ * swatches in colors.css. The names say what a colour MEANS, so that changing
+ * the brand is one edit there and nowhere else.
+ *
+ * Light only. `<html data-color-scheme="light">` is what the live site serves.
+ *
+ * ⛔⛔ BRAND PASS, 13 Aug 2026 — colors.css's own header has the full "why".
+ * Every ratio comment below that depends on a moved token (--aik-paper,
+ * --aik-ink, --aik-ink-quiet, --aik-rule, --aik-green, and the tokens
+ * DERIVED from them: --aik-paper-sunk, --aik-green-ink, --aik-green-wash)
+ * has been recomputed, not left stale — the exact discipline colors.css's
+ * own header asks for, applied here too.
+ *
+ * ========================================================================
+ * ⭐⭐ THE ONE RULE
+ *
+ *     GREEN MARKS THE WAY IN.
+ *
+ * aikyam space is a community space in Fort Kochi that people walk into. Everything the
+ * site publishes exists so somebody turns up. So the accent marks the one
+ * control on a screen that gets them through the door:
+ *
+ *     · on a session page — the row that says you can come, and when
+ *     · on the schedule   — today
+ *     · on /about/        — the address and the map link
+ *     · on /contact-us/   — the one control that reaches a human
+ *
+ * ⛔ It is never a category, never a tag, never a heading, never a link, never
+ * a byline, never a date, never a drop cap. At most ONCE per screen; twice only
+ * on the schedule, where "today" and "how to get here" are both ways in.
+ *
+ * ⭐ WHY THAT IS CHECKABLE RATHER THAN ARGUABLE: the count is the rule. Airbnb
+ * lands at four instances on an 8,166px page. aikyam.space lands at 49 (25
+ * fills, 24 text) across seven pages. One or two per screen is a number a
+ * checker can assert.
+ *
+ * ⭐ AND THE CONSEQUENCE FOR BUTTONS, which is the visible break with the live
+ * site: a primary button is INK-filled, not green. It still outranks a
+ * secondary button, because RANK IS CARRIED BY SHAPE — pill against 12px —
+ * which is how Airbnb does it and which survives a reader who cannot separate
+ * the hues. Green fill is reserved for the single control that is the way in.
+ * ========================================================================
+ */
+:root {
+  color-scheme: light;
+
+  /* --- Surfaces --------------------------------------------------------- */
+  --surface-page: var(--aik-paper);
+  --surface-quiet: var(--aik-paper-sunk); /* panels, secondary buttons, notes */
+  --surface-way-in: var(--aik-green); /* ⚠️ ONE per screen. See the rule above */
+  --surface-wash: var(--aik-green-wash); /* the ONE tinted block: today's row */
+  --surface-scrim: var(--aik-scrim); /* text over a photograph */
+
+  /* --- Text ------------------------------------------------------------- */
+  --text-primary: var(--aik-ink); /* 14.16:1 page · 13.31 quiet · 12.93 wash — recomputed 22 Aug 2026 against the owner-supplied #f7f2ec paper. ⚠️ The previous comment read 14.79 · 14.16 · 12.93: those were measured against the OLD lighter paper and were never redone when the ground changed, so the page figure was overstated and the quiet figure was actually the page's. All three are far past AAA either way — the correction matters because a ratio written in a comment gets copied into the next one. */
+  --text-secondary: var(--aik-ink-quiet); /* 5.52:1 page · 5.28 quiet — recomputed 13 Aug 2026 (was 7.00 · 6.71) */
+  /* ⛔⛔ THE POLARITY INVERSION, 13 Aug 2026 — the comment this token carried,
+     "NEVER white: 2.90", was true for #2eac6d and is now WRONG for the
+     brand pass's #008246: against the new, darker green, ink is 3.21:1 and
+     FAILS, white is 4.90:1 and PASSES. Left alone, this file would have
+     shipped an instruction that causes the exact failure it was written to
+     prevent, and it would have read as the most authoritative line in the
+     file. Swapped to white; the comment now states the CURRENT rule, not
+     the old one. */
+  /* ⛔ --aik-white, NOT --aik-paper, since 11 Sep 2026. The 4.90:1 below is
+     WHITE's figure, and it was right while --aik-paper was white. The paper
+     went cream (#f7f2ec) on 22 Aug 2026, and cream on #008246 is 4.41:1 —
+     under 4.5:1 for body-size text. Nobody saw it because no rule used this
+     token until the home page's green action bar. */
+  --text-on-way-in: var(--aik-white); /* 4.90:1 on green. ⛔ NEVER --aik-ink: 3.21 */
+  --text-on-scrim: var(--aik-paper); /* at least 6.72:1 over ANY photograph —
+     recomputed 13 Aug 2026 (was 6.89 on the old ink/white pair; see
+     colors.css's own --aik-scrim comment for the full recomputation).
+     ⚠️ That figure belongs to the scrim's ALPHA and to --aik-paper's own
+     luminance, not to this token. Recompute it again if either ever moves;
+     do not carry it forward. */
+  /* ⚠️ NOT the link colour and NOT the tag colour. Kept for the rare case where
+     green genuinely has to be a word — a "way in" label inside running prose.
+     5.17:1 on paper, 4.95 on quiet, 4.52 on wash — recomputed 13 Aug 2026
+     against the new --aik-green-ink (was 5.11 · 4.89 · 4.64). */
+  --text-green: var(--aik-green-ink);
+
+  /* ⭐ THE LINK LADDER HAS TWO TIERS, AND NEITHER OF THEM IS GREEN.
+   *
+   *   ordinary link                        ink + a 1px --border-hairline underline
+   *   the link that is the way in          ink + a 2px --aik-green underline
+   *                                        ⚠️ at most twice a screen
+   *
+   * The rank is carried by underline WEIGHT, not hue, so it survives for a
+   * reader who cannot separate the colours. Green may appear on :hover, which
+   * costs nothing. ⛔ Green must never tint the words themselves.
+   *
+   * ⚠️ WHAT SHIPS TODAY, measured on /stamping-through-time/ 9 Aug 2026:
+   * `a` in prose is rgb(64,64,64) with a rgb(64,64,64) underline — the same
+   * colour as the text around it. That is one tier, not two, and it is not
+   * wrong, it is just unranked. Reconcile the two or the built site and this
+   * system will disagree. */
+
+  /* --- Action ----------------------------------------------------------- */
+  /* ⭐ RANK IS SHAPE, NOT COLOUR — measured on Airbnb and adopted exactly.
+   *
+   *     primary    pill, 999px    ← "the one thing to do here"
+   *     way-in     pill, 999px    ← "this is how you come" — green fill
+   *     secondary  12px radius    ← everything else
+   *
+   * All three the same height. A colour-blind reader can still tell primary
+   * from secondary. ⛔ Do not distinguish two buttons by colour alone. */
+  --action-primary-bg: var(--aik-ink);
+  --action-primary-text: var(--aik-paper); /* 14.16:1 — recomputed 22 Aug 2026 against the owner-supplied #f7f2ec paper (the 14.79 here was measured against the old ground). */
+  --action-way-in-bg: var(--aik-green); /* ⚠️ ONE per screen */
+  /* ⛔⛔ THE SAME POLARITY INVERSION as --text-on-way-in above, same reason,
+     swapped the same night — see that token's own comment for the full
+     explanation. */
+  --action-way-in-text: var(--aik-white); /* 4.90:1. ⛔ NEVER --aik-ink: 3.21. White, not paper, since 11 Sep 2026 — see --text-on-way-in. */
+  --action-secondary-bg: var(--aik-paper-sunk);
+  --action-secondary-text: var(--aik-ink); /* 14.16:1 — recomputed 13 Aug 2026 (was 14.50) */
+  /* ⛔ No border on a secondary button. The fill is the affordance and an
+     outline on top of a fill is two signals for one fact. */
+
+  /* --- Lines ------------------------------------------------------------ */
+  /* ⭐ THREE LINES, THREE JOBS, AND THE MIDDLE ONE IS THE FIX FOR A LIVE BUG.
+   *
+   *   --border-hairline   1px, INSET by the gutter   "next section, same page"
+   *   --border-control    1px, around a field        "you can type in here"
+   *   --border-band       8px, FULL BLEED             "a different kind of
+   *                                                   content entirely"
+   *
+   * The live newsletter field is 358x46 with a #ebebeb edge at 1.19:1
+   * (historical — the OLD live theme's own field colour, unaffected by this
+   * pass). A form control's boundary is a meaningful non-text indicator and
+   * needs 3:1; --border-control is 3.16:1 (recomputed 13 Aug 2026 against
+   * the new cream ground — was 3.36 on white; --aik-edge's own hex didn't
+   * move). ⛔ Do not use --border-hairline on anything a reader has to aim
+   * at or type into. */
+  --border-hairline: var(--aik-rule); /* 1.17:1 on cream — decoration only. Recomputed 13 Aug 2026 (was 1.19 on white; --aik-rule's own hex also moved) */
+  --border-control: var(--aik-edge); /* 3.16:1 on cream — fields, checkboxes, selects. Recomputed 13 Aug 2026 (was 3.36 on white) */
+  --border-band: var(--aik-rule);
+
+  /* --- Focus ------------------------------------------------------------ */
+  /* The Guardian's "focus halo" (@guardian/source, Apache-2.0), adopted whole.
+     A 2px ring is sized for an office monitor; this reader is on a phone,
+     often outdoors, often on a screen that is not new. Costs nothing to draw.
+     ⚠️ 1.23:1 against the green fill (recomputed 13 Aug 2026 against the
+     new, darker brand green — was 2.08 against #2eac6d; see colors.css's
+     own --aik-focus comment), so the ring is drawn OUTSIDE the control
+     with --focus-ring-offset and never inside it. */
+  --focus-ring: var(--aik-focus);
+  --focus-ring-width: 5px;
+  --focus-ring-offset: 3px;
+}
+
+/* Every focusable thing gets exactly this, and nothing gets a custom variant:
+ *
+ *   :focus-visible
+ *     outline: var(--focus-ring-width) solid var(--focus-ring);
+ *     outline-offset: var(--focus-ring-offset);
+ *
+ * Written as a comment because this file defines tokens only. The rule belongs
+ * in the theme's own stylesheet, once, with :focus-visible so it never appears
+ * for a mouse user. ⛔ Never remove an outline without a replacement.
+ */
+
+/* ---------------------------------------------------------------------------
+ * ⛔ WHAT GREEN MAY NOT DO — stated as rules because each is wrong on the live
+ * site today, with the measurement that says so.
+ *
+ * ⚠️ RE-CHECKED 13 Aug 2026 against the new #008246 (colors.css's own
+ * --aik-green comment has the full numbers). The five rules below still
+ * hold, but rule 1's OLD justification ("#2eac6d on white is 2.90:1")
+ * doesn't carry forward literally — the new green passes as text on
+ * cream/white (4.60 / 4.90) but still fails on the quieter/tinted grounds
+ * (--aik-paper-sunk 4.41, --aik-green-wash 4.02). The rule itself is
+ * unchanged (green is not a category/tag/heading colour regardless of
+ * contrast — that was never only a contrast argument), but "never text on
+ * a light ground" is no longer uniformly true of every light ground for
+ * THIS green; --aik-green-ink exists specifically for where green must
+ * still appear as text.
+ *
+ * 1. GREEN IS NEVER TEXT ON A LIGHT GROUND. #2eac6d on white is 2.90:1
+ *    (historical, the old brand green). The live site does this on every
+ *    category tag ("EVENTS / COMMUNITY PROGRAMMES" at 12.8px/600) and on
+ *    the drop cap that opens every article. 24 instances across seven
+ *    pages. The NEW brand green (#008246) does not repeat this specific
+ *    failure on cream/white, but still fails on --aik-paper-sunk and
+ *    --aik-green-wash — see --aik-green-ink, above, for where green text
+ *    is safe everywhere.
+ *
+ * 2. GREEN NEVER CARRIES WHITE TEXT. White on #2eac6d was also 2.90:1, and
+ *    that was the live Subscribe button — in the header, in the footer, and
+ *    full width at 358x46 in the newsletter block. Same colour, opposite
+ *    polarity, same failure. Dark text on the OLD green was 5.22:1.
+ *    ⛔⛔ THIS RULE INVERTED FOR THE NEW GREEN, 13 Aug 2026 — white on
+ *    #008246 is 4.90:1 and PASSES; dark ink on it is 3.21:1 and FAILS. See
+ *    --text-on-way-in / --action-way-in-text, above, both swapped to white
+ *    this pass. Read "green never carries white text" as describing the
+ *    OLD brand green specifically, not a standing rule.
+ *
+ * 3. GREEN IS NEVER THE ONLY THING CARRYING A MEANING. At 2.90:1 the old
+ *    green missed the 3:1 a non-text indicator needs, so a thin green rule
+ *    or a green dot was invisible to some readers. This rule doesn't
+ *    depend on which green ships — a colour is never the ONLY signal,
+ *    regardless of its own contrast — and stays unconditional.
+ *
+ * 4. GREEN IS NEVER A CATEGORY COLOUR. Every tag on the site is green today,
+ *    which is precisely how green stopped meaning anything. Words encode.
+ *    Unconditional; not a contrast argument.
+ *
+ * 5. ⭐ GREEN NEVER DECORATES A LETTER. Every article opens with a drop cap in
+ *    --color-brand at `clamp(2.5rem, 2.2rem + 5vw, 6rem)` — 40px to 96px of
+ *    green, weight 600, read straight off the theme rule
+ *    `[data-drop-caps="true"] .content > p:first-child::first-letter`. It
+ *    was 2.90:1 on the old green, it is the first character a reader meets,
+ *    and it spends the whole colour budget of the page before the first
+ *    sentence. Unconditional; not a contrast argument either.
+ * ------------------------------------------------------------------------- */

@@ -1,0 +1,28 @@
+---
+/** A Strapi photo, resized at build time into a srcset (astro:assets). */
+import { Image } from 'astro:assets';
+import type { Photo } from '../lib/strapi';
+
+interface Props {
+  photo: Photo;
+  sizes: string;
+  widths: number[];
+  class?: string;
+  eager?: boolean;
+}
+const { photo, sizes, widths, class: cls, eager = false } = Astro.props;
+const usable = widths.filter((w) => w <= photo.width);
+---
+
+<Image
+  src={photo.src}
+  width={photo.width}
+  height={photo.height}
+  alt={photo.alt}
+  widths={usable.length ? usable : [photo.width]}
+  sizes={sizes}
+  format="webp"
+  quality={70}
+  loading={eager ? 'eager' : 'lazy'}
+  class={cls}
+/>

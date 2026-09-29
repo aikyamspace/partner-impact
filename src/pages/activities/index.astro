@@ -1,0 +1,17 @@
+---
+/** Every published activity of the partner, newest first. */
+import Site from '../../layouts/Site.astro';
+import ActivityCards from '../../components/ActivityCards.astro';
+import { activities, host } from '../../lib/strapi';
+
+const [all, h] = await Promise.all([activities(), host()]);
+---
+
+<Site title="Activities" description={`Every activity ${h.name} has recorded.`} current="activities">
+  <div class="wrap wrap--wide">
+    <section class="impact-head">
+      <h1>Activities</h1>
+    </section>
+    <ActivityCards activities={all} />
+  </div>
+</Site>

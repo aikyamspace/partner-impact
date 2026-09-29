@@ -1,0 +1,366 @@
+/* aikyam space design system — base palette
+ *
+ * Every value below was either read off the live aikyam.space in Chrome on
+ * 9 August 2026 (marked LIVE) or derived from one that was (marked DERIVED).
+ * Nothing here is invented and nothing is eyeballed.
+ *
+ * Contrast ratios are COMPUTED from these hex values in the browser, never
+ * copied from a comment. If you change one, recompute. That discipline is what
+ * found the two failures this file exists to fix.
+ *
+ * ⛔⛔ BRAND PASS, 13 Aug 2026 — the owner supplied new brand guidelines
+ * (colours, the mark, Figtree self-hosting planned separately). Five values
+ * below moved: --aik-paper (white → cream), --aik-ink, --aik-ink-quiet,
+ * --aik-rule, --aik-green. Every ratio in this file that involves one of
+ * those five was recomputed from the NEW hex pairs, in the browser, the same
+ * discipline this file's own header already demanded — a stale ratio
+ * comment has been the actual defect here three times before. Anything
+ * describing the OLD live theme's own colours (marked LIVE, historical) is
+ * untouched — those are evidence for why this system deviates from the
+ * theme, not claims about this system's current tokens, and stay true
+ * regardless of what our own palette does next.
+ *
+ * ========================================================================
+ * ⭐⭐ THE DISCIPLINE BEING COPIED IS HOW LITTLE COLOUR THERE IS
+ *
+ * Measured on Airbnb (docs/research/airbnb-study.md in the catsofkochi repo,
+ * 6 Aug 2026): on one 8,166px listing page the accent appears FOUR times. On a
+ * search page showing 36 listings with prices, ratings and badges, the only red
+ * on the page is the logo. Prices are ink. Badges are ink.
+ *
+ * Measured on aikyam.space, 9 Aug 2026, across seven pages: 25 green FILLS and
+ * 24 green TEXT instances. The accent is doing the job of a category label.
+ *
+ *     GREEN MARKS THE WAY IN.
+ *
+ * It marks the one control on a screen that brings a person through the door:
+ * the session you can turn up to, the form that holds the room, the address.
+ * It is never a category, never a heading, never a link, never a tag, never a
+ * byline, never a date.
+ * ========================================================================
+ */
+:root {
+  /* --- The brand -------------------------------------------------------- */
+
+  /* LIVE (historical). Ghost `--ghost-accent-color` on aikyam.space as it
+     shipped before the 13 Aug 2026 brand pass, HSL 150 58% 43% — a mid
+     green. Kept in full below as the record of WHY a brand pass was
+     needed; #2eac6d is no longer this system's --aik-green (see that
+     token, further down) — do not read this block as describing the
+     current brand.
+
+     ⛔⛔ IT FAILS AA IN BOTH POLARITIES, AND ONE OF THEM SHIPS TODAY.
+     Computed in Chrome from the rendered rgb, 9 Aug 2026:
+
+         white on #2eac6d          2.90:1   ⛔ the live Subscribe button
+         #2eac6d as text on white  2.90:1   ⛔ every category tag on the site
+         #262626 on #2eac6d        5.22:1   ✅
+         pure black on #2eac6d     7.24:1   ✅
+
+     ⭐⭐ AND THE THEME ALREADY HAD THIS RIGHT — THE OVERRIDE IS ARITHMETIC.
+     `assets/dist/app.min.css` line 1 declares `--color-brand-contrast: #000`.
+     An inline <script> in the theme's own <head> then BUILDS a five-declaration
+     :root block and injects it, choosing the contrast colour with a YIQ luma
+     test read verbatim out of the served HTML:
+
+         yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000
+         colorContrast = (yiq >= 128) ? '#000' : '#fff'
+
+     For #2eac6d — r=46, g=172, b=109:
+
+         (46*299 + 172*587 + 109*114) / 1000
+         = (13754 + 100964 + 12426) / 1000
+         = 127.144
+
+     ⛔ IT MISSES THE THRESHOLD BY 0.856 AND PICKS WHITE. That is the whole
+     2.90:1 failure, on every Subscribe button on the site.
+
+     ⚠️ SO THERE IS NOTHING TO EDIT IN THE INJECTED BLOCK — it is generated on
+     every page load. THE FIX IS THE FUNCTION, in the theme template, and it is
+     one of two things:
+       1. replace the YIQ test with a real WCAG contrast computation (YIQ is a
+          1950s television luma formula and is not a contrast metric); or
+       2. failing that, stop letting it decide — hard-code the contrast colour
+          for this brand, since the accent is not going to change often.
+
+     ⭐ AND THE TELL THAT PROVES THE DIAGNOSIS: with JavaScript disabled the
+     block is never injected, the theme's own static `#000` stands, and the
+     button renders CORRECTLY at 5.22:1. The accessible version of this site is
+     the one where the script fails.
+
+     ⚠️ 2.90 also misses the 3:1 that WCAG asks of a meaningful non-text
+     indicator, so a thin green rule or a green dot is not a reliable signal
+     either. Green may be a FILL BEHIND DARK CONTENT and nothing else — this
+     constraint carries forward to the new brand green below; it was never
+     specific to #2eac6d's own failure. */
+  /* OWNER-SUPPLIED, 13 Aug 2026 — the new brand guidelines' green. Computed
+     against this system's own grounds (cream, white, --aik-paper-sunk,
+     --aik-green-wash):
+
+         #008246 as text on cream        4.60:1   ✅
+         #008246 as text on white        4.90:1   ✅
+         #008246 as text on paper-sunk   4.41:1   ⛔
+         #008246 as text on green-wash   4.02:1   ⛔
+         white on #008246                4.90:1   ✅ (fill, dark content on it)
+         ink on #008246                  3.21:1   ⛔ (was 5.22 on the old
+                                                   green — the new, richer
+                                                   green is darker, so ink
+                                                   loses contrast against it
+                                                   even as white gains it —
+                                                   see --text-on-way-in /
+                                                   --action-way-in-text in
+                                                   theme.css, both swapped
+                                                   to white this pass)
+
+     ⭐ So #008246 is safe as BARE TEXT on cream/white but NOT on the
+     quieter/tinted grounds — this is why --aik-green-ink (below) still
+     exists after this pass rather than being retired; it was checked on
+     all four grounds before that decision, not assumed off two. */
+  --aik-green: #008246;
+
+  /* DERIVED. The brand green walked down the SAME hue and saturation
+     (152°, 100%) until it can be read as TEXT on all four grounds this
+     system ships — cream, white, --aik-paper-sunk, --aik-green-wash (not
+     three; --aik-paper-sunk was folded into "sunk" in the original
+     derivation and is kept explicit here since it's the ground that binds).
+     Computed:  cream 5.17:1 · white 5.51:1 · sunk 4.95:1 · wash 4.52:1.
+
+     ⚠️ The obvious stopping point is wherever the FIRST ground clears 4.5 —
+     for this walk that's cream, at a lighter value than #007941. Stopping
+     there is how a colour ships broken on the others (green-wash is the
+     binding ground here, at 4.02:1 for the bare brand green — see
+     --aik-green's own comment). Four grounds, four checks, take the
+     darkest that still clears all of them. */
+  --aik-green-ink: #007941;
+
+  /* DERIVED. 10% brand green composited over cream and flattened to a solid
+     so it behaves the same over any ground. Ink on it = 12.93:1. */
+  --aik-green-wash: #e2ebe3;
+
+  /* --- Text on a dark or green ground ------------------------------------
+     Added 11 Sep 2026 with the home page's photo hero and green action bar
+     (design handoff "Home page v2"). The first two existed only as literals
+     before; the third is the value --text-on-way-in has always claimed.
+
+     --aik-mint #dcffe6 — the wordmark's "space" (components.css
+       `.brand__block span`, where its derivation lives). 4.55:1 on
+       --aik-green. The hero kicker, and the outline button's border on green.
+
+     --aik-green-on-ink #7de0a8 — a green that can be read on the hero's ink
+       scrim, where --aik-green measures ~2.2:1. Over the scrim composited on
+       a PURE WHITE photograph (the worst case): 6.76:1 at alpha 0.88, 5.13
+       at 0.80, 3.10 at 0.65. So it clears the 3:1 large-text floor only
+       where the scrim is at least 0.65 — a headline word, never body text.
+
+     --aik-white #ffffff — text on the brand green. --aik-paper went cream
+       (#f7f2ec) on 22 Aug 2026 and cream is 4.41:1 on #008246, under the
+       4.5:1 body text needs; white is 4.90:1. See theme.css
+       --text-on-way-in. */
+  --aik-mint: #dcffe6;
+  --aik-green-on-ink: #7de0a8;
+  --aik-white: #ffffff;
+
+  /* --- Paper and ink ---------------------------------------------------- */
+  /* ⭐ TWO TEXT GREYS. THE LIVE THEME SHIPS SEVEN AND THREE OF THEM FAIL.
+   * Computed on white from the theme's own declared values (historical —
+   * describes the old live theme, not this system; unaffected by the
+   * 13 Aug palette move):
+   *
+   *     --color-dark        #262626   15.13:1   ✅
+   *     --color-dark-acc    #404040   10.37:1   ✅
+   *     --color-grey-darker #595959    7.00:1   ✅
+   *     --color-grey-dark   #737373    4.74:1   ✅ (barely)
+   *     --color-grey-light  #8c8c8c    3.36:1   ⛔
+   *     --color-grey-lighter #a6a6a6   2.43:1   ⛔
+   *     figcaption grey     #808080    3.95:1   ⛔  ← LIVE, on every caption
+   *
+   * Ours is two. Both moved 13 Aug 2026 with the brand pass (owner-supplied
+   * cream ground, ink and body tightened to sit on it) — recomputed against
+   * the new --aik-paper (cream), not carried forward from the white-ground
+   * numbers above:
+   *
+   *     --aik-ink        #1f2421   14.79:1 on cream
+   *     --aik-ink-quiet  #6b635e    5.52:1 on cream
+   *
+   * ⛔ There is no third tier. If something needs to recede further than
+   * --aik-ink-quiet it needs less space or fewer words, not a paler grey.
+   *
+   * ⚠️ A THIRD GREY WAS PROPOSED AND NOT ADOPTED, 13 Aug 2026 — "muted"
+   * #9C948E. Computed: 2.80:1 as text on cream — fails AA text at every
+   * size and fails the 3:1 a non-text indicator needs. It may be legal as
+   * text on --aik-ink (predicted 5.28:1, not yet verified in the browser).
+   * Owner deferred a decision pending review of the rest of this pass. This
+   * is an omission with a reason, not a gap someone forgot to fill — do not
+   * add it back as a token without recomputing and getting that review. */
+  /* ⛔ #fbf7f4 -> #fbf8f4, owner's call 22 Aug 2026 (AIKYAM-ASK-035). His own
+     13 Aug cream is superseded by his own 22 Aug brief — a deliberate choice to
+     make the LIVE SITE match the mockups rather than the other way round, taken
+     with both options in front of him. Ink measures 14.88:1 on it (was 14.79),
+     quiet ink 5.55:1 (was 5.52) — both improved, neither compensated for. */
+  /* ⛔ WARMER AGAIN, 22 Aug 2026 — his second call the same day, option 5c
+     picked from four candidates rendered side by side. This is a deliberate,
+     visible step, NOT a reconciliation: #fbf7f4 -> #fbf8f4 (this morning) ->
+     #f7f2ec. Ink measures 14.16:1 on it, quiet ink 5.28:1 — both a wide margin
+     over 4.5:1, and neither compensated for.
+     ⚠️ THE RETREAT, IF ONE IS EVER NEEDED, IS A SET: #fbf7f4 paper with
+     #f6f2ef sunk, both measured off a served page. Never retreat the paper
+     alone — that reintroduces the inverted surface below. */
+  --aik-paper: #f7f2ec; /* OWNER-SUPPLIED, 22 Aug 2026 (5c) */
+  /* ⛔ MUST MOVE WITH THE PAPER, and this is the correctness half of the
+     change rather than the taste half. A surface named *sunk* that is LIGHTER
+     than the page renders as a panel popping forward instead of recessing.
+     Verified after: sunk is darker than paper (luminance 0.8756 < 0.9421) and
+     the step is 1.072:1, wider than the 1.045:1 it replaces — so nothing that
+     relied on the step reads weaker. */
+  /* ⛔ MOVES WITH THE PAPER OR NOTHING MOVES. A surface named *sunk* that is
+     LIGHTER than its page renders as a panel popping forward. Verified after:
+     sunk luminance 0.8366 < paper 0.8933, step 1.064:1. */
+  --aik-paper-sunk: #f1ebe3; /* was #f4f0eb */
+  --aik-ink: #1f2421; /* OWNER-SUPPLIED, 13 Aug 2026 */
+  --aik-ink-quiet: #6b635e; /* OWNER-SUPPLIED, 13 Aug 2026. 5.52:1 on cream */
+
+  /* --- Lines ------------------------------------------------------------ */
+  /* ⚠️ TWO LINE COLOURS, BECAUSE A LINE HAS TWO JOBS AND ONLY ONE OF THEM IS
+   * DECORATION. The live theme uses #ebebeb for both (historical — the old
+   * theme's own field, unaffected by this pass), and that is why the
+   * newsletter email field measures 358x46 with an edge at 1.19:1 — a form
+   * control whose boundary is effectively invisible.
+   *
+   *     --aik-rule     #ede5df   1.17:1 on cream   a pause between sections. Decoration
+   *     --aik-edge     #8c8c8c   3.16:1 on cream   the boundary of a thing you type in
+   *
+   * (Both recomputed 13 Aug 2026 against the new --aik-paper; --aik-rule's
+   * own hex also moved, --aik-edge did not — only its ground did, and 3.16
+   * still clears the 3:1 floor it needs to.)
+   *
+   * ⛔ --aik-rule may never be the ONLY thing telling a reader that two kinds
+   * of content are different. A heading must say in words what the rule says
+   * in ink. */
+  /* ⛔ MUST MOVE WITH THE PAPER TOO. A hairline loses contrast against a
+     changed ground, and this one already sits near the edge of visible — the
+     activity feed separates its days with it. 1.227:1 on the new paper against
+     1.168:1 before, so it is slightly MORE visible, and warm rather than a grey
+     line on a cream page. */
+  /* ⛔ AND SO DOES THE HAIRLINE. It already sits near the edge of visible and
+     the activity feed separates its days with it: #ebebeb on this paper would
+     be 1.06:1, effectively gone. #e5ded4 lands at 1.199:1, almost exactly the
+     1.19:1 the original grey had on white. */
+  --aik-rule: #e5ded4; /* was #e7e1d9 */
+  --aik-edge: #8c8c8c; /* LIVE. --color-grey-light, repurposed as a boundary — unchanged this pass */
+
+  /* --- Scrim ------------------------------------------------------------ */
+  /* Text over a photograph cannot have its contrast computed from CSS, so it
+     gets a scrim opaque enough to dominate the worst photograph underneath.
+     Worst case is a PURE WHITE photograph, because that lifts the composite
+     closest to the light text on top of it.
+
+     ⛔⛔ CORRECTED 9 Aug 2026, RECOMPUTED 13 Aug 2026. This token was first
+     written at alpha 0.72 with the claim "at least 6.80:1", and 6.80 was
+     WRONG — it was carried over from the sister project, whose ink is
+     #1c1a17. A number copied from another project's file is not a
+     measurement of this one.
+
+     13 Aug 2026: the brand pass moved both ends of this composite — ink is
+     now #1f2421 (was #262626) and the text on top is cream #fbf7f4 (was
+     white). Re-composited and re-computed at the same alpha 0.76 this
+     system already shipped, cream text over the scrim on a pure white
+     photograph:
+
+         alpha 0.50                              2.96:1   too low to state a floor
+         alpha 0.72                              5.87:1
+         alpha 0.75                              6.49:1
+         alpha 0.76  (this system, unchanged)     6.72:1   ← the real figure now
+
+     ⭐ So at 0.76 — the same alpha, no change needed there — the claim is
+     unconditional: text on this scrim is at least 6.72:1 over ANY
+     photograph. That is not a hope about the pictures we happen to
+     publish; it is a floor that holds for every picture anyone uploads.
+     --aik-paper is cream here, not white — paper text and pure white text
+     are NO LONGER the same number (cream is very slightly darker), which is
+     why this floor moved from 6.89 to 6.72 even though the ink only shifted
+     slightly lighter.
+
+     The live site uses rgba(0,0,0,0.5) on its image overlays, which states no
+     floor at all. */
+  --aik-scrim: rgba(31, 36, 33, 0.76);
+
+  /* --- Focus ------------------------------------------------------------ */
+  /* Neither green nor neutral, on purpose: a focus ring must not be confusable
+     with the brand's own "this is the way in" highlight. 5.66:1 on cream
+     (recomputed 13 Aug 2026 against the new paper — was 6.03 on white),
+     which clears the 3:1 a non-text indicator needs with margin.
+     ⚠️ It is 1.23:1 against the new green fill (recomputed 13 Aug 2026 —
+     was 2.08 against the old, lighter #2eac6d; the new green is darker, so
+     the two colours read even closer together), so the ring is drawn
+     OUTSIDE the control with an offset and never inside it. See spacing.css.
+     The live theme's focus colour is hsl(217 99% 65%) = 3.12:1 on white
+     (historical, describes the old theme). */
+  --aik-focus: #0b60c4;
+}
+
+/* ---------------------------------------------------------------------------
+ * ⛔ WHAT IS DELIBERATELY ABSENT, so nobody adds it back thinking it was missed
+ *
+ *  · No second or third accent. Measured in page content on 9 Aug 2026:
+ *    rgba(33,172,232,0.12) — a blue callout — and rgba(52,183,67,0.12) — a
+ *    SECOND green that is not the brand green. Both arrived through the Ghost
+ *    editor's callout card, which offers a colour picker. A colour picker in an
+ *    editor is how a one-colour system becomes a five-colour one.
+ *
+ *  · No success green, warning yellow, error red or info blue. The theme
+ *    declares all four (#48c774, #fddc58, #fc365e, #259eef). This site has one
+ *    form and no states to signal. A closed session is a SENTENCE.
+ *
+ *  · No category palette. Words encode. Colour does not.
+ *
+ *  · ⛔ NO DARK VALUES — AND THAT IS NOW A DECISION, NOT A GAP.
+ *    ⛔ SETTLED BY THE OWNER, 21 Aug 2026. Asked directly whether to build
+ *    dark mode before the aikyam.space cutover or go live without it, he
+ *    chose to go live light-only, and added: "We will be always Light only
+ *    for catsofkochi" — i.e. light-only is his standing preference, not a
+ *    one-off for this site. This entry said the opposite for twelve days;
+ *    theme.css ("Light only. `<html data-color-scheme=\"light\">` is what the
+ *    live site serves") was right and this file was the one out of date.
+ *    ⭐ He decided this KNOWING the cost, and it is a REMOVAL, not a
+ *    non-addition: the Ghost site being replaced carries a working
+ *    `select.color-scheme-select` in its footer — verified by fetching
+ *    https://aikyam.space/ on 21 Aug 2026, HTTP 200 — with a real dark
+ *    palette behind it (#1f1f1f / #d9d9d9, 11.68:1). Readers using it lose
+ *    it at cutover. That was put to him plainly before he answered.
+ *
+ *    ⚠️ THE ASTRO SITE ENFORCES THIS CORRECTLY ALREADY, so there is nothing
+ *    to build: `color-scheme: light` is declared, and it is an ACTIVE OPT-OUT
+ *    rather than an omission — it keeps native form controls light-rendered
+ *    for a visitor whose OS is in dark mode, which is why the cream contact
+ *    form does not pick up dark browser chrome. Measured on the built site:
+ *    zero `prefers-color-scheme`, zero `[data-theme`, zero `.dark` across
+ *    both shipped stylesheets, and computed `color-scheme: light` on :root,
+ *    on body, and on every rendered control.
+ *
+ *    ⛔ TWO MEASUREMENT TRAPS RECORDED HERE ON PURPOSE, because this exact
+ *    paragraph has now caused a wrong conclusion twice:
+ *      1. 9 Aug — probing for `input.theme` and `[role=switch].theme`,
+ *         finding neither, and reporting that NO control existed. The
+ *         absence of one specific control is not the absence of all.
+ *      2. 21 Aug — a reviewer and a lead BOTH read "the LIVE footer carries
+ *         a select", measured the new Astro build, found no <select>, and
+ *         concluded this comment was stale. It was not. When a claim names a
+ *         system ("live", "production", "the old site"), that noun is
+ *         load-bearing and the measurement must happen on THAT system.
+ *
+ *    ⚠️ IF THIS IS EVER REOPENED, the cost is not "add dark values here".
+ *    Three shipped things now rest on colour RELATIONSHIPS that have only
+ *    ever existed in one palette, and each needs re-deriving AND re-measuring
+ *    in a second: the attendance chip surface (1.08:1 against the page —
+ *    already the faintest a surface can be, no headroom to lose), the ladder
+ *    rung name (--text-primary) against its sentence (--text-secondary), and
+ *    the testimonial cite colour. Two further figures, both measured against
+ *    the OLD live green #2eac6d and needing a RE-CHECK against #008246: the
+ *    brand green as a tag on that dark ground was 5.68:1 and PASSED, so
+ *    green's contrast failure was specifically a LIGHT-mode failure; and the
+ *    Subscribe button was 2.90:1 in dark, because the YIQ script picks white
+ *    regardless of colour scheme.
+ *
+ *  · No gold. --color-gold: #ffd900 is inherited from the theme family and used
+ *    by nothing.
+ * ------------------------------------------------------------------------- */

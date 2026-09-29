@@ -1,0 +1,33 @@
+---
+/** One club: its own description from Strapi, and the partner's sessions in it. */
+import Site from '../../layouts/Site.astro';
+import ActivityCards from '../../components/ActivityCards.astro';
+import { activities, clubs } from '../../lib/strapi';
+import { impactOf } from '../../lib/impact';
+
+export async function getStaticPaths() {
+  return (await clubs()).map((c) => ({ params: { slug: c.slug }, props: { club: c } }));
+}
+const { club } = Astro.props;
+const mine = (await activities()).filter((a) => a.club?.slug === club.slug);
+const i = impactOf(mine);
+const nf = new Intl.NumberFormat('en-IN');
+---
+
+<Site title={club.name} description={club.description}>
+  <div class="wrap wrap--wide">
+    <section class="impact-head">
+      <p class="kicker">Club</p>
+      <h1>{club.name}</h1>
+      {club.description && <p>{club.description}</p>}
+    </section>
+    <ul class="stats">
+      <li><span class="stats__n">{nf.format(i.sessions)}</span><span class="stats__label">Sessions run</span></li>
+      <li><span class="stats__n">{nf.format(i.attendances)}</span><span class="stats__label">Attendances</span></li>
+    </ul>
+    <section class="psection" aria-labelledby="acts-h">
+      <h2 id="acts-h">Sessions</h2>
+      <ActivityCards activities={mine} />
+    </section>
+  </div>
+</Site>

@@ -1,0 +1,289 @@
+/* aikyam space design system — space, measure, shape
+ *
+ * ⚠️ Every number here was measured in Chrome on 9 August 2026, in a real
+ * 390 x 844 same-origin frame against the live aikyam.space, or in real
+ * Figtree confirmed against its recorded fingerprint (1143.93px for
+ * "Water Metro closes 21:00" at 100px; 1027.84px for a bogus family name as
+ * the negative control).
+ *
+ * ⛔ A token file is a PROXY for the page. Editing one can feel like changing
+ * the design and change nothing. Verify a value in getComputedStyle on a
+ * served page, never by reading the CSS.
+ */
+:root {
+  /* --- Scale ------------------------------------------------------------ */
+  /* A 4px mini-unit. The three values that set the rhythm are --space-4 inside
+     a block, --space-6 between paragraphs, --space-9 between sections. */
+  --space-1: 0.25rem; /* 4px  */
+  --space-2: 0.5rem; /* 8px  */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px — the phone gutter, measured */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px — the desktop gutter, and the card gap */
+  --space-7: 2rem; /* 32px */
+  --space-8: 2.5rem; /* 40px — the card grid ROW gap */
+  --space-9: 3rem; /* 48px — between sections */
+  --space-10: 4rem; /* 64px — before the footer */
+
+  /* --- The gutter -------------------------------------------------------- */
+  /* ⭐⭐ AND THIS IS WHERE WE DEPART FROM AIRBNB, WITH THE MEASUREMENT THAT
+   * FORCED IT.
+   *
+   * Airbnb's phone gutter is 24px each side, leaving a 342px content column at
+   * 390px. aikyam.space's is 16px, leaving 358px. Adopting Airbnb's 24px looks
+   * like the obvious move and it is wrong here, because their body is 14px and
+   * ours is 19px. Counted character by character into rendered line boxes, on
+   * 2,400 characters of this site's own prose, in real Figtree:
+   *
+   *     column      17px      18px      19px      20px       (median / max)
+   *     326px      40/44     37/42     34/41     32/41
+   *     342px      41/47     39/44     36/42     34/41   ← Airbnb's gutter
+   *     358px      43/51     40/49     39/44     36/42   ← the live gutter
+   *
+   * At 19px NOTHING on a 390px phone reaches the 45-character floor. That is
+   * arithmetic, not a preference — so take the widest column available and
+   * keep the 16px gutter on a phone. 39 characters against 36 is the whole
+   * difference and it is worth having.
+   *
+   * ⛔ Do not "fix" the short line by shrinking the type. The table shows the
+   * trade explicitly: 17px would buy 43 characters. Bigger text and shorter
+   * lines travel together, and on this site the type wins. */
+  /* Solved, not guessed: 16px at 390px, 24px at 690px and above.
+     slope = (24-16)/(690-390) = 2.667vw ; intercept = 16 - 0.02667*390 = 5.6px */
+  --gutter: clamp(1rem, 0.35rem + 2.667vw, 1.5rem);
+
+  /* ⭐ THE SITE IS NOT ON A VERTICAL GRID, AND SHOULD NOT BE PUT ON ONE.
+   * Airbnb's section-to-section pitch on one page runs 255 / 305 / 273 / 507 /
+   * 440 / 874 / 542 / 292 / 445 / 1113 px. CONTENT sets the spacing. What IS
+   * regular is the local rhythm, and these two are the whole of it. */
+  --pitch-rule-heading: 2.0625rem; /* 33px — after a divider, before a heading */
+  /* ⭐⭐ THE PAGE TITLE IS THE PARENT OF EVERY SECTION, NOT A PEER OF THE
+   * FIRST — so the gap below the page head must exceed the section-to-
+   * section pitch. Measured 12 Aug 2026: peer sections render 81px
+   * apart, so this is 112px, one type-ladder step (1.43x, h1 40px / h2
+   * 28px) above them, rounded to the nearest 4px mini-unit (81 * 1.43 ≈
+   * 116 → 112). If the peer pitch changes, re-derive — a future 112
+   * sitting under a future 120 peer gap is wrong, and only this comment
+   * makes it obviously wrong rather than silently wrong.
+   * ⛔ Replaces --pitch-rule-heading directly below a page's head block
+   * (h1, or h1 + its own lede where one exists) — that token's entire
+   * meaning is "a hairline just closed the previous thing," and a page
+   * head is never preceded by a hairline. Never applied BETWEEN an h1
+   * and its own lede — the head block is h1+lede together; this is the
+   * gap AFTER that block ends. */
+  --pitch-head-section: 7rem; /* 112px */
+  --pitch-row: 1.25rem; /* 20px — between rows inside one block */
+
+  /* --- Measure ---------------------------------------------------------- */
+  /* ⭐⭐ 34rem = 544px OF TEXT, AND IT REPLACES A 700px COLUMN THAT IS THE
+   * SITE'S LARGEST SINGLE READABILITY DEFECT.
+   *
+   * Measured on the live site, 9 Aug 2026: the article column is 700px at
+   * 17.6px Lora, which counts out at a MEDIAN OF 78-82 CHARACTERS PER LINE,
+   * longest 87. BBC GEL states the rule plainly — for body copy, no more than
+   * 60 characters per line. The live column is a third over it.
+   *
+   * Re-counted in real Figtree on the same 2,400-character sample:
+   *
+   *     column      19px      20px      21px      (median / max)
+   *     480px      52/59     50/55     47/51
+   *     512px      55/62     52/59     51/58
+   *     544px      60/65     56/63     54/59    ← --measure
+   *     576px      63/70     60/70     57/64
+   *     608px      67/73     63/70     60/70
+   *
+   * At the 20px desktop body that is 56 characters median, 63 longest — inside
+   * the 45-75 band and under the 65 ceiling. At 19px it is 60/65, which sits
+   * exactly on the ceiling, and the body is 20px at every width where this
+   * column is reachable, so 34rem is the right answer for the size that will
+   * actually be set in it.
+   *
+   * ⚠️⚠️ THE TRAP UNDER THE NUMBER — --measure IS THE TEXT COLUMN, and the
+   * wrapper adds the gutters ON TOP of it. A border-box wrapper capped at
+   * --measure renders a text column of --measure MINUS two gutters. Ship the
+   * calc with the token, always:
+   *
+   *     .wrap { max-width: calc(var(--measure) + var(--gutter) * 2); }
+   *
+   * At 24px gutters that is 592px of wrapper holding 544px of text. */
+  --measure: 34rem; /* 544px of TEXT. Not of wrapper. */
+  --measure-wide: 62rem; /* index pages, the schedule grid, the footer */
+
+  /* ⭐ A MEASURE BELONGS TO A TYPE SIZE, NOT TO A PAGE. But reach for the TYPE
+   * first: in almost every case the honest fix is that the text should not
+   * have been that small. Derived from the table above, the column that gives
+   * roughly 58 characters for its own size:
+   *
+   *     14px → 22rem   ·   16px → 27rem   ·   17px → 28rem
+   *
+   * ⚠️ AND NOT `ch`. `60ch` looks like it says "sixty characters" and does not:
+   * `ch` is the advance of the digit zero, which in a sans is wider than the
+   * average lowercase letter, so 60ch renders about 80 characters. */
+  --measure-small: 22rem; /* short 14-16px blocks only. ⛔ Not a licence. */
+
+  /* ======================================================================
+   * SHAPE — and this is the real visual break with the live site
+   * ======================================================================
+   *
+   * The live theme sets --global-radius: 0px, which is a decision, and then
+   * breaks it in two places. Measured 9 Aug 2026:
+   *
+   *     card photograph, 358x201 and 380x214   border-radius: 0
+   *     team portrait, 52x52                   border-radius: 6px
+   *     author avatar                          border-radius: 50%
+   *
+   * THREE corner treatments for a photograph of a person on one site, and 6px
+   * matches nothing else anywhere.
+   *
+   * ⭐ THE RULE, taken from Airbnb and re-stated so it can be applied without
+   * looking anything up:
+   *
+   *     A PHOTOGRAPH THAT RUNS TO THE EDGE OF THE PAGE IS SQUARE.
+   *     A PHOTOGRAPH INSIDE A CARD TAKES THE CARD'S CORNER.
+   *     A PERSON IS A CIRCLE.
+   *
+   * Nothing rounds a photograph for decoration. A corner appears only where
+   * something contains it, and then it is the container's corner.
+   *
+   * ⭐⭐ AND THE RADIUS IS LOAD-BEARING HERE IN A WAY IT IS NOT ELSEWHERE.
+   * The brand green fails contrast in both polarities (colors.css), so colour
+   * CANNOT rank two controls against each other. Shape has to. A pill and a
+   * 12px rectangle are distinguishable in glare, in greyscale, and to a reader
+   * who cannot separate the hues. That is why this system introduces radius on
+   * a site that is square today: not for looks, to carry a meaning the colour
+   * can no longer carry. */
+  --radius-none: 0; /* full-bleed photographs, page chrome, inputs, the band */
+  --radius-card: 0.5rem; /* 8px — a card, and any photograph inside one */
+  --radius-control: 0.75rem; /* 12px — secondary button, chip, map */
+  --radius-pill: 999px; /* a primary button, and the way-in button */
+  --radius-round: 50%; /* a person. Always. */
+
+  /* --- A person --------------------------------------------------------- */
+  /* ⛔ 52px IS TOO SMALL FOR A FACE AND THE TEAM PAGE PROVES IT. Thirteen
+   * portraits render at 52x52 from sources between 335px and 1385px square.
+   * The photograph exists; the page throws it away. Airbnb's host avatar is
+   * 40px in a byline and 88px where the host is the point.
+   *
+   *     --portrait-inline   48px   a byline, next to a name, one line high
+   *     --portrait-list     64px   a list of people you are being introduced to
+   *     --portrait-profile  96px   a page about that person
+   *
+   * A face below 64px in a list is decoration, and decoration that costs a
+   * network request. If it must be smaller than 48px, drop the picture. */
+  --portrait-inline: 3rem; /* 48px */
+  --portrait-list: 4rem; /* 64px */
+  --portrait-profile: 6rem; /* 96px */
+
+  /* ======================================================================
+   * SHADOW — there is none, and that is the decision
+   * ======================================================================
+   * Measured on Airbnb: cards have no shadow, and the overlay floating on a
+   * card photo has no fill, no border and no shadow. The one surface that has
+   * to lift off the page separates itself with a 1px hairline. The live
+   * aikyam.space ships no shadows either. Ship no shadow tokens at all. */
+
+  /* --- Rules ------------------------------------------------------------ */
+  /* ⭐ TWO WEIGHTS, TWO MEANINGS.
+   *     1px, inset by the gutter  →  next section of the same page
+   *     8px, full bleed           →  a different kind of content entirely
+   * ⛔ Neither is ever full-width AND thin: an inset hairline reads as a pause,
+   * a full-bleed hairline reads as a mistake. */
+  --rule-hairline: 1px;
+  --rule-band: 8px;
+
+  /* --- Card grid -------------------------------------------------------- */
+  /* Measured on the live site at 1280px: three cards of 405px with a 16px
+     column gap. Airbnb's measured grid is 376px cards, 24px column gap, 40px
+     ROW gap — the row gap is nearly twice the column gap, because a card's own
+     text runs to its bottom edge and needs air under it that it does not need
+     beside it. The live site's 16px is tight in both directions.
+     ⭐ Prefer auto-fill over a breakpoint ladder; it removes the widths at
+     which a grid re-flows badly:
+        grid-template-columns: repeat(auto-fill, minmax(min(21rem, 100%), 1fr)) */
+  --grid-gap-col: var(--space-6); /* 24px */
+  --grid-gap-row: var(--space-8); /* 40px */
+
+  /* --- Media ------------------------------------------------------------ */
+  /* ⭐ ONE RATIO FOR CARD PHOTOGRAPHS AND IT IS ALREADY THE MAJORITY. Measured:
+     card images are 16/9 (358x201 phone, 380x214 desktop) but the homepage hero
+     is 3/2 (568x376), and images inside articles take whatever ratio the
+     uploader's phone produced — 1.00, 1.33, 1.50, 0.75 and 0.94 all appear on
+     /clubs/ alone. Fix the CARD ratio; leave article images alone, because
+     cropping somebody's photograph of their own session is a content decision,
+     not a layout one. */
+  --ratio-card: 16 / 9;
+  --ratio-hero: 3 / 2;
+
+  /* --- Touch ------------------------------------------------------------ */
+  /* ⛔⛔ THIS IS THE SITE'S WORST MEASURED DEFECT BY COUNT. Every interactive
+   * element under 44px on either axis, in a real 390px frame, 9 Aug 2026:
+   *
+   *     /                      101      /author/aparna/          79
+   *     /latest/                86      /authors/                59
+   *     /tech/                  55      /archive/                51
+   *     /change-makers.../      47      /team/                   44
+   *     /clubs/                 43      every other page      37-41
+   *
+   * The four that appear on EVERY page are the site chrome itself:
+   *
+   *     Menu        27 x 27
+   *     Search      34 x 27
+   *     Subscribe   95 x 31  (header)   ·  107 x 34  (desktop bar)
+   *     Log in      80 x 34
+   *
+   * ⛔ FOUR THINGS THAT GO WRONG WHEN THIS IS FIXED, in the order they bite:
+   *
+   * 1. `min-height` DOES NOTHING TO AN INLINE <a>. The ROW is the target, not
+   *    the words:
+   *        .row          { position: relative; }
+   *        .row > a::after { content: ''; position: absolute; inset: 0; }
+   *    ⚠️ A second link in the row must be lifted above the overlay, and TWO
+   *    overlays on one row means the LATER ONE WINS — a tap on the session
+   *    opens the map. Verify with elementFromPoint at both ends.
+   *
+   * 2. ⛔ DO NOT SIT EXACTLY ON 44. A box of exactly 44 measures as 43 once
+   *    subpixel rounding at deviceScaleFactor 2 is involved.
+   *
+   * 3. ⛔ PADDING DOES NOT HELP. `min-height` is a FLOOR, not an addend. A 17px
+   *    link plus 8px of padding is 25px, still under the floor, and lands on
+   *    44 again. Raise the floor instead.
+   *
+   * 4. ⛔ A TARGET HAS TWO AXES and width is the one nobody measures. Both
+   *    floors, always:
+   *        min-height: var(--tap-comfortable);
+   *        min-inline-size: var(--tap-comfortable);
+   *        display: inline-flex; align-items: center; justify-content: center;
+   *
+   * ⚠️ SIBLING TRAP: do NOT reach for `display: flex` to centre a ROW's
+   * content. Flex turns every child into its own item, so a text node after a
+   * link becomes a separate item and the space before an em dash disappears. */
+  --tap: 44px; /* what a check asserts. ⛔ Do not build to this number. */
+  --tap-comfortable: 52px; /* what CSS sets, on BOTH axes */
+
+  /* Airbnb's button is 342 x 48 with padding 14px 24px. 48 clears 44 and sits
+     below our 52 floor, so ours is 52 and the padding is theirs. The live
+     site's full-width Subscribe is 358 x 46. */
+  --button-height: 3.25rem; /* 52px */
+  --button-pad: 0 var(--space-6); /* 0 24px */
+}
+
+/* ---------------------------------------------------------------------------
+ * ⛔ UNDERLINE THE TEXT, NOT THE BOX — a SPACING bug that looks like a colour
+ * bug, and it appears the moment the tap-target fix above lands.
+ *
+ * A link styled with a bottom BORDER is fine at natural link height, because
+ * the box IS the text. Add a 52px tap floor and the box becomes 52px, the text
+ * centres inside it, and the border draws at the bottom of the TAP TARGET — a
+ * stray rule hanging ~20px under the word.
+ *
+ *     .link {
+ *       border: 0;
+ *       text-decoration: underline;
+ *       text-decoration-color: var(--border-hairline);
+ *       text-underline-offset: 3px;
+ *       min-height: var(--tap-comfortable);
+ *       display: inline-flex; align-items: center;
+ *     }
+ *
+ * text-decoration tracks the TEXT by construction; a border tracks the BOX.
+ * ------------------------------------------------------------------------- */

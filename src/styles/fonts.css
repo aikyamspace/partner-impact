@@ -1,0 +1,109 @@
+/* ── self-hosted type ───────────────────────────────────────────────────────
+   ⛔ SELF-HOSTED FROM 22 Aug 2026, owner's call (AIKYAM-ASK-038). Until now both
+   families came from fonts.googleapis.com, which cost two third-party
+   handshakes on every page and made the one thing below impossible.
+
+   ⭐ ONE FAMILY NAME, THREE FILES, SPLIT BY `unicode-range`. A component writes
+   one `font-family` and the browser picks the file per CHARACTER — so digits,
+   `2–6 PM` and Latin names inside a Malayalam sentence still come from Figtree,
+   which is what keeps the schedule's tabular figures working.
+
+   ⛔ NOTO'S OWN LATIN SUBSETS ARE DELIBERATELY NOT SHIPPED. Google served five
+   files for the old request and THREE of them were Noto Sans Malayalam —
+   including its Latin ranges. With those present a Latin glyph can be drawn by
+   Noto instead of Figtree, which is exactly the defect that breaks tabular
+   figures. Not shipping them makes it impossible rather than unlikely.
+
+   ⭐ `size-adjust: 90%` IS THE WHOLE REASON THIS IS WORTH DOING. It matches Noto
+   Sans Malayalam's body height to Figtree's x-height, so the two scripts look
+   the same size on one mixed line. ⛔ It CANNOT be applied to a Google-hosted
+   family — the declaration is theirs, not ours. Self-hosting is what buys it.
+
+   ⚠️ `U+200C-200D` sits in the Malayalam range on purpose: ZWNJ and ZWJ are how
+   the older chillu forms are written and must resolve to the Malayalam file.
+
+   ⚠️ `font-display: swap` kept from the previous setup: text paints immediately
+   in a fallback and re-renders when the face lands. On a Malayalam page that is
+   the difference between reading and staring at nothing.
+
+   Both families are SIL Open Font License 1.1, which permits self-hosting.
+   Variable weight files, 300..700, matching what the tokens ask for. */
+
+/* ⛔⛔ NEVER OVERWRITE ANY FILE UNDER public/fonts/ IN PLACE — 27 Aug 2026.
+   public/_headers serves /fonts/* with max-age=31536000, immutable: a
+   browser that has a file keeps it for a YEAR under that name, whatever a
+   later deploy ships. To change a font, cut it under a NEW name (dated,
+   like the header subset below) and change the `src:` here. Applies to
+   all four files, not just the subset — tester's catch. */
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/figtree-latin.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+
+/* ⚠️ latin-ext is where `₹` (U+20B9) lives. Figtree's latin-only file does not
+   contain it, so without this the rupee a reader sees comes from their device
+   rather than from Figtree. 10KB. */
+@font-face {
+  font-family: 'Figtree';
+  src: url('/fonts/figtree-latin-ext.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304,
+    U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0,
+    U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ⭐ THE HEADER SUBSET, 27 Aug 2026 — measured on the live site: the full
+   Malayalam file (89,448 B) downloaded on EVERY English page, where the only
+   Malayalam on the page is the language switcher's "മലയാളം" and the footer's
+   "ഐകം" — nine codepoints (U+0D02 0D10 0D15 0D2E 0D2F 0D32 0D33 0D3E 0D4D)
+   across all 272 English pages of the build. That was 48% of the whole
+   /clubs/ page. This file is the same face cut to those nine characters
+   plus ZWNJ/ZWJ, with its full shaping tables (12,288 B), made with
+   fontTools: `python3 -m fontTools.subset noto-sans-malayalam.woff2
+   --unicodes=... --flavor=woff2 --layout-features='*'`.
+   ⛔ A DIFFERENT FAMILY NAME, deliberately. Two @font-face rules with one
+   name and overlapping unicode-range would both be candidates for every
+   Malayalam character and the browser would fetch the full file anyway.
+   Which family a page uses is decided by `--font-ui` in components.css:
+   this one everywhere, the full one on `html:lang(ml)` pages only.
+   ⚠️ If a NEW Malayalam character ever appears on an English page it
+   renders in the device's own Malayalam font, not in Noto — re-cut the
+   subset with the new codepoint. ⛔ NEVER OVERWRITE THIS FILE IN PLACE:
+   public/_headers caches /fonts/* for a YEAR as immutable, so a reader
+   who already has today's file keeps it until 2027 whatever a deploy
+   ships under the same name. Cut the new one under a NEW dated name and
+   change the `src:` above — code review's catch, 27 Aug 2026.
+   ⚠️ The 404 page is the one non-Malayalam page with a full Malayalam
+   sentence (18 more codepoints); it restores the full face for its own
+   `[lang="ml"]` block in 404.astro rather than tripling this file for a
+   page a reader lands on by accident. `size-adjust` matches the full
+   face. */
+@font-face {
+  font-family: 'Noto Sans Malayalam Header';
+  src: url('/fonts/noto-sans-malayalam-header-2026-08-27.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 90%;
+  unicode-range: U+0D02, U+0D10, U+0D15, U+0D2E, U+0D2F, U+0D32, U+0D33, U+0D3E, U+0D4D,
+    U+200C-200D;
+}
+
+@font-face {
+  font-family: 'Noto Sans Malayalam';
+  src: url('/fonts/noto-sans-malayalam.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 90%;
+  unicode-range: U+0307, U+0323, U+0951-0952, U+0964-0965, U+0D00-0D7F, U+1CDA, U+1CF2,
+    U+200C-200D, U+20B9, U+25CC, U+A830-A832;
+}

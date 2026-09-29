@@ -1,0 +1,98 @@
+---
+/**
+ * The impact page — the partner's home page (owner's call, 29 Sep 2026: "an
+ * olimalar impact page. just the most important pages showing olimalar in
+ * action"). Headline figures (sessions run, attendances, hours, outcomes
+ * worked on), what they learned, their latest activities and their clubs.
+ * Every figure is computed from the published records in Strapi (impact.ts).
+ */
+import Site from '../layouts/Site.astro';
+import ActivityCards from '../components/ActivityCards.astro';
+import { activities, clubs, host } from '../lib/strapi';
+import { impactOf } from '../lib/impact';
+import { href } from '../lib/links';
+
+const [all, h, cs] = await Promise.all([activities(), host(), clubs()]);
+const i = impactOf(all);
+const nf = new Intl.NumberFormat('en-IN');
+const learned = all.filter((a) => a.toc.learnings).slice(0, 3);
+const firstDate = all.length ? new Intl.DateTimeFormat('en-IN', { month: 'long', year: 'numeric' }).format(new Date(all[all.length - 1].date)) : null;
+---
+
+<Site title={h.name} description={h.description} current="impact">
+  <div class="wrap wrap--wide">
+    <section class="impact-head">
+      <p class="kicker">Impact{firstDate && <> · since {firstDate}</>}</p>
+      <h1>{h.name}</h1>
+      {h.description && <p>{h.description}</p>}
+    </section>
+
+    <ul class="stats">
+      <li>
+        <span class="stats__n">{nf.format(i.sessions)}</span>
+        <span class="stats__label">Sessions run</span>
+      </li>
+      <li>
+        <span class="stats__n">{nf.format(i.attendances)}</span>
+        <span class="stats__label">Attendances</span>
+        <span class="stats__note">Headcounts added up across {nf.format(i.attendanceSessions)} sessions; a child who comes every week is counted each time.</span>
+      </li>
+      <li>
+        <span class="stats__n">{nf.format(i.hours)}</span>
+        <span class="stats__label">Hours</span>
+        <span class="stats__note">Recorded on {nf.format(i.hourSessions)} of {nf.format(i.sessions)} sessions.</span>
+      </li>
+      <li>
+        <span class="stats__n">{nf.format(i.outcomes.length)}</span>
+        <span class="stats__label">Outcomes worked on</span>
+      </li>
+    </ul>
+
+    {i.outcomes.length > 0 && (
+      <section class="psection" aria-labelledby="outcomes-h">
+        <h2 id="outcomes-h">Outcomes worked on</h2>
+        <ul class="outcome-list">
+          {i.outcomes.map((o) => (
+            <li>{o.name}<span class="times">× {o.times}</span></li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {learned.length > 0 && (
+      <section class="psection" aria-labelledby="learned-h">
+        <h2 id="learned-h">What we learned</h2>
+        <ul class="learnings">
+          {learned.map((a) => (
+            <li>
+              <blockquote><p>{a.toc.learnings}</p></blockquote>
+              <a href={href(`/activities/${a.slug}/`)}>{a.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    <section class="psection" aria-labelledby="latest-h">
+      <h2 id="latest-h">Latest activities</h2>
+      <ActivityCards activities={all.slice(0, 6)} />
+      <p><a href={href('/activities/')}>All {nf.format(all.length)} activities</a></p>
+    </section>
+
+    {cs.length > 0 && (
+      <section class="psection" aria-labelledby="clubs-h">
+        <h2 id="clubs-h">Clubs</h2>
+        <ul class="clubcards">
+          {cs.map((c) => (
+            <li>
+              <a href={href(`/clubs/${c.slug}/`)}>
+                <h3>{c.name}</h3>
+                <p>{all.filter((a) => a.club?.slug === c.slug).length} sessions</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+  </div>
+</Site>

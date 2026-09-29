@@ -1,0 +1,220 @@
+/**
+ * The one stylesheet every page imports. Tokens ship as SOURCE — the four
+ * files under ./tokens/ are a symlink to
+ * ~/aikyam-space-design-system/tokens/, never copied, so a value can only
+ * ever be edited in one place. colors.css first: theme.css's custom
+ * properties reference var(--aik-*), which colors.css defines.
+ *
+ * design's 10 Aug 2026 pass measured `document.styleSheets.length === 0` on
+ * both dist/ and the dev server — this file, and importing it from every
+ * page, is the fix for that specific finding. What follows is a baseline
+ * wiring pass (font, colour, the tabular-figures rule the twelve assertions
+ * check for), not a full visual design pass — that stays design's, iterating
+ * on top of a page that now actually loads the system instead of loading
+ * nothing.
+ */
+/* ⛔ FIRST: the @font-face block must be parsed before anything asks for the
+   family, and self-hosted faces replaced a Google stylesheet <link> that used
+   to sit in every page head. */
+@import './fonts.css';
+@import './tokens/colors.css';
+@import './tokens/theme.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+@import './components.css';
+
+/* ⚠️ tokens/typography.css names --font-ui with metric-matched fallback
+   entries ("Figtree Fallback: Roboto" etc.) that assume @font-face rules this
+   slice does not ship — ASTRO-PLAN.md §4 names the self-hosted Figtree font
+   as separately unassigned work. An unmatched family name is silently
+   skipped by the browser, so this stack still resolves consistently to one
+   real fallback face everywhere it's applied — which is what "one family"
+   (assertion 5) actually requires; it does not require Figtree itself to be
+   present yet. */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+}
+
+/* h1/h2/h3 margins match ui_kits/_kit.css exactly (margin:0) — this
+   system's pages control spacing with the --space-* tokens on their own
+   wrappers (.entryhead, .lede, etc.), never with a heading's own margin.
+   That matters concretely on the activity entry page: .entryhead's
+   padding-block-start is what puts 40px of air below the nav, and an h1
+   margin here would double it. */
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-heading);
+  /* ⛔⛔ FOUND 13 Aug 2026, verifying team-lead's 200%-zoom report — a
+     SEPARATE overflow source from the two he'd already named (footer
+     .nb, .homeacts grid): the home h1's own longest word
+     ("Interdependent", --type-display) doesn't fit on its own line at
+     200% text zoom on a 360px phone even after normal word-wrapping —
+     measured live, scrollWidth 418px against a 296px box in a 360px
+     viewport. Real horizontal overflow, same WCAG 1.4.4/1.4.10 class as
+     the other two. overflow-wrap: break-word only takes effect when a
+     word genuinely can't fit on its own line (never at normal sizes) —
+     applied to every heading, not just this one h1, since any long
+     single word in an h1/h2/h3 at this type scale can hit the same
+     wall. */
+  overflow-wrap: break-word;
+}
+
+h1 {
+  font-size: var(--type-display);
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-display);
+}
+
+h2 {
+  font-size: var(--type-heading);
+}
+
+h3 {
+  font-size: var(--type-subheading);
+}
+
+a {
+  color: inherit;
+}
+
+/* ⭐⭐ tokens/spacing.css defines --measure (544px of text) and design measured
+   it was defined and applied to NOTHING — zero text elements carried any
+   max-width, longest line 85 characters at a wide viewport against the
+   60-character gate. "0 -> 1 stylesheets" proved the tokens are LOADED; it
+   said nothing about whether they are USED. This is invisible on a phone —
+   the viewport itself constrains the column there — and only shows on
+   desktop, which is where the owner reviews. */
+p {
+  margin: 0 0 var(--paragraph-gap);
+  max-width: var(--measure);
+  /* ⛔ Same fix as h1/h2/h3 above, same real cause — verified live on
+     /team/'s .hostrows__desc (a <p>): a description's own longest
+     unbreakable word didn't fit in the row's own (already-shrunk-by-
+     min-inline-size:0) width at 200% text zoom on a 360px phone,
+     scrollWidth 203 against a 168px box. Covers .hostrows__name/
+     __role/__desc in one place since all three are real <p> elements. */
+  overflow-wrap: break-word;
+}
+
+.wrap {
+  max-width: calc(var(--measure) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+.wrap--wide {
+  max-width: calc(var(--measure-wide) + var(--gutter) * 2);
+}
+/* A blanket descendant cap, not depth-limited selectors — ui_kits/_kit.css's
+   own history (see its comments) is two real regressions from a
+   depth-limited version of this rule. */
+.wrap--wide :is(p, li, dd, blockquote, h1, h2, h3, h4) {
+  max-width: var(--measure);
+}
+.wrap--wide :is(.acts, .sayslist, .saysstack, .foot-cols, .about-facts, .about-room__photos, .storylist, .hostrows, .actrows, .actthumbs, .partnerpills) > li {
+  max-width: none;
+}
+/* ⭐ `.actrows` JOINED THE OPT-OUT 14 Sep 2026, the activity-page design
+   handoff — the browse rail at the foot of /activities/{slug}/. Same defect as
+   `.hostrows` below and `.storylist` before it: the blanket rule above caps
+   every `li` at the 544px text measure, so a row link laid out across the full
+   column silently collapses and wraps.
+   ⚠️⚠️ THIS IS THE THIRD COMPONENT THIS ONE RULE HAS CAUGHT (.storylist,
+   .hostrows, .actrows), and the handoff says so in as many words: it is worth
+   fixing as a RULE — scoping the blanket cap to prose containers, or inverting
+   it to an opt-IN — rather than adding a class here each time someone notices.
+   ⛔ NOT DONE AS PART OF THIS CHANGE, deliberately: inverting this rule
+   touches every page on the site and wants its own measured pass, and doing it
+   inside an activity-page change would hide a site-wide regression behind an
+   activity-page diff. Recorded here so the next person meets the choice rather
+   than the symptom. */
+/* ⭐ `.hostrows` JOINED THE OPT-OUT 14 Sep 2026, the spaces-pages design
+   handoff. Its `<li class="hostrows__row">` is the same photo-beside-text
+   shape as `.storylist__row` and was capped by the blanket rule above the
+   same way: the handoff measured a row at 544px wide inside the 992px
+   column.
+   ⚠️⚠️ THIS ALSO CHANGED /team/ AND /partners/, WHICH WERE NOT IN THAT
+   CHANGE'S SCOPE — say it here so nobody meets it later as a surprise.
+   `.hostrows` is their row list too (team.astro, partners/index.astro),
+   and the same cap had held every row on both pages to 544px for as long
+   as they have used it. Since this entry, a row on /team/ and /partners/
+   spans the full 992px column: the portrait stays 88px, the name/role/
+   description block beside it takes the extra width (the description's
+   own `max-width: var(--measure)` still caps ITS line length at 544px, so
+   the text does not get wider — the row's box does). Intended — the
+   handoff records it as fixing a long-standing cap — and reviewed as a
+   consequence, not as a target: nothing on those two pages was changed
+   to produce it, and undoing it for them alone would mean a
+   `.hostrows`-modifier or a per-page rule, which nobody has asked for. */
+/* ⛔⛔ .entry-list REMOVED from the opt-out above, 12 Aug 2026, same night
+   /activities/ became a two-track grid — it doesn't want NO cap any
+   more, it wants a TIGHTER one (480px, not the blanket 544px), since an
+   .entry now sometimes sits in a grid track wider than 480px (the
+   single-column state, before a second 480px track fits) and must not
+   stretch to fill it — one left edge, matching how every other
+   narrower-than-container component on this site already behaves.
+   Specificity note: this needs a THIRD class in the chain
+   (.wrap--wide + .entry-list + the li type selector = 0,2,1) to beat
+   the blanket rule above (.wrap--wide + a bare `li` from :is() = 0,1,1)
+   — a bare `.entry { max-inline-size: 30rem }` in components.css alone
+   would lose that fight, the same trap the 544px-cap incident already
+   taught this file once. */
+.wrap--wide .entry-list > li {
+  max-width: 30rem; /* 480px — components.css's own .entry-list/.entry comments have the full "why" */
+}
+
+code,
+kbd,
+samp {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ⭐⭐ Tabular figures wherever numbers stack — tokens/typography.css's own
+   rule, applied to exactly the two hooks slice/MARKUP-CONTRACT.md specifies
+   for it: every row carrying a time or a date. This is what lets assertion 7
+   see real elements and actually measure them, for the first time since it
+   was written. */
+[data-session-row],
+[data-facts-row] {
+  font-variant-numeric: var(--figures-aligned);
+}
+
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ⛔ Added 12 Aug 2026, first real use: the story-ending signup form's
+   email <label> — design's own verify item ("the field has a real
+   <label>, not a placeholder standing in for one"), kept off-screen
+   rather than shown, since the mockup doesn't show a separate visible
+   "Email address" line above the field. Standard, well-known recipe
+   (WebAIM/Bootstrap's own), not invented here — clips to 1px instead of
+   `display:none` so it stays in the accessibility tree. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

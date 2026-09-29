@@ -1,0 +1,26 @@
+{
+  "name": "partner-impact",
+  "private": true,
+  "type": "module",
+  "description": "Impact sites for aikyam space partners, built from the aikyam Strapi CMS and published on GitHub Pages.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "check": "astro check",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "astro": "^7.2.0",
+    "culori": "^4.0.2",
+    "p-limit": "^7.3.1",
+    "sharp": "^0.35.4"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@types/culori": "^4.0.1",
+    "@types/node": "^22.20.4",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

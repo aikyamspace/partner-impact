@@ -1,0 +1,24 @@
+---
+/** A grid of activity cards: photo, date and club, title. */
+import Photo from './Photo.astro';
+import { href } from '../lib/links';
+import type { Activity } from '../lib/strapi';
+
+interface Props {
+  activities: Activity[];
+}
+const { activities } = Astro.props;
+const fmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+---
+
+<ul class="acards">
+  {activities.map((a) => (
+    <li class="acard">
+      <a href={href(`/activities/${a.slug}/`)}>
+        {a.photo ? <Photo photo={a.photo} widths={[400, 640, 900]} sizes="(min-width: 60rem) 20rem, 90vw" /> : <div class="acard__nophoto" aria-hidden="true" />}
+        <span class="acard__meta">{fmt.format(new Date(a.date))}{a.club && <> · {a.club.name}</>}</span>
+        <span class="acard__title">{a.title}</span>
+      </a>
+    </li>
+  ))}
+</ul>

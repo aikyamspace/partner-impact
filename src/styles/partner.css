@@ -1,0 +1,260 @@
+/* The partner site's own layouts. Everything else — type scale, spacing
+   steps, paper and ink, the activity sections — comes from aikyam.space's
+   design system, copied into ./tokens, base.css and components.css. Every
+   value here is one of those tokens. */
+
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+}
+
+/* The partner's own colour: one band across the top of every page. */
+.psite-head {
+  border-top: 6px solid var(--partner);
+  border-bottom: var(--rule-hairline) solid var(--border-hairline);
+}
+.psite-head__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  padding-block: var(--space-4);
+}
+.psite-head__name {
+  font-weight: var(--weight-semibold);
+  font-size: var(--type-subheading);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+.psite-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  font-size: var(--type-small);
+}
+.psite-nav a {
+  color: var(--text-secondary);
+  text-underline-offset: var(--underline-offset);
+}
+.psite-nav a[aria-current='page'] {
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+  text-decoration-color: var(--partner);
+  text-decoration-thickness: 2px;
+}
+
+.psite-foot {
+  margin-block-start: var(--space-10);
+  padding-block: var(--space-6) var(--space-8);
+  border-top: var(--rule-hairline) solid var(--border-hairline);
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+}
+.psite-foot a {
+  color: inherit;
+}
+
+/* ---- Impact page ---- */
+.impact-head {
+  padding-block: var(--space-8) var(--space-6);
+}
+.impact-head .kicker {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2);
+}
+.impact-head h1 {
+  margin: 0 0 var(--space-4);
+}
+.impact-head p {
+  font-size: var(--type-body);
+  color: var(--text-secondary);
+}
+
+.stats {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-6) 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: var(--space-6);
+  border-block: var(--rule-hairline) solid var(--border-hairline);
+}
+.stats li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.stats__n {
+  font-size: var(--type-display);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  color: var(--text-green);
+  font-variant-numeric: var(--figures-aligned);
+}
+.stats__label {
+  font-weight: var(--weight-medium);
+}
+.stats__note {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+  max-width: 22ch;
+}
+
+.psection {
+  margin-block-start: var(--space-9);
+}
+.psection > h2 {
+  color: var(--text-green);
+  margin-block-end: var(--space-4);
+}
+
+.outcome-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.outcome-list li {
+  background: var(--surface-wash);
+  border-radius: var(--radius-pill);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+.outcome-list .times {
+  color: var(--text-secondary);
+  font-weight: var(--weight-regular);
+  margin-inline-start: var(--space-1);
+}
+
+.learnings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-5);
+}
+.learnings blockquote {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-wash);
+  border-radius: var(--radius-card);
+}
+.learnings a {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+}
+
+/* Activity cards: photo, date, title, club. */
+.acards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-7) var(--space-6);
+}
+.acard a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: inherit;
+  text-decoration: none;
+}
+.acard img,
+.acard .acard__nophoto {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-card);
+  background: var(--surface-quiet);
+}
+.acard__meta {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+}
+.acard__title {
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: var(--underline-offset);
+}
+.acard a:hover .acard__title,
+.acard a:focus-visible .acard__title {
+  text-decoration-color: currentColor;
+}
+
+.clubcards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--space-6);
+}
+.clubcards a {
+  display: block;
+  padding: var(--space-5);
+  border: var(--rule-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  color: inherit;
+  text-decoration: none;
+}
+.clubcards h3 {
+  margin: 0 0 var(--space-2);
+  color: var(--text-green);
+}
+.clubcards p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+}
+
+/* ---- Activity page ---- */
+.aphoto {
+  max-width: calc(var(--measure-wide) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+/* aikyam.space's rule (.entry__shot): bounded by HEIGHT, never cropped — a
+   portrait phone photograph is evidence — and never scaled past its own width. */
+.aphoto {
+  padding-block-start: var(--space-5);
+}
+.aphoto img {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  max-height: 32rem;
+  border-radius: var(--radius-card);
+  background: var(--surface-quiet);
+}
+.ahead {
+  padding-block: var(--space-6) var(--space-3);
+}
+.ahead .kicker {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-2);
+}
+.report-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--tap-comfortable);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}

@@ -1,0 +1,63 @@
+# The publish workflow for ONE partner's impact site. It lives in that
+# partner's own repository (e.g. aikyamspace/olimalar-impact) as
+# .github/workflows/publish.yml — copy it there and change PARTNER.
+#
+# It checks out this template (public, so no key is needed), builds it for the
+# partner, and publishes the result to that repository's GitHub Pages with
+# GitHub's own Pages actions. The only secret is STRAPI_TOKEN, a read-only
+# Strapi key, stored in the partner repository's Actions secrets.
+name: Publish
+
+on:
+  schedule:
+    - cron: '30 3 * * *' # 09:00 in India, every day
+  workflow_dispatch: # the "Run workflow" button
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  PARTNER: olimalar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: aikyamspace/partner-impact
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      # ⛔ Pinned to the version the report layout was measured on; a Typst
+      # upgrade can move page breaks.
+      - uses: typst-community/setup-typst@v5
+        with:
+          typst-version: 0.15.1
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          STRAPI_TOKEN: ${{ secrets.STRAPI_TOKEN }}
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

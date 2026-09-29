@@ -1,0 +1,121 @@
+---
+/**
+ * Theory of change on an activity page — Input, Output, Outcome, Learnings.
+ * Owner's calls, 28 Sep 2026: the four parts, these plain headings ("simpler"),
+ * shown publicly.
+ * ⭐ THREE GROUPS, owner's calls 29 Sep 2026 — Input | Activity + Output |
+ * Outcome + Learnings, a hairline between groups:
+ *   `part="input"`   Input, BEFORE the write-up (under "Facilitated by"),
+ *                    closed by the first line;
+ *   `part="output"`  Output, straight after the write-up, in its group;
+ *   `part="results"` Outcome and Learnings, opened by the second line.
+ * No `part` renders all four together.
+ * ⭐ THE WRITE-UP IS HEADED "Activity" WHEN INPUT IS SHOWN, owner 29 Sep 2026:
+ * with Input above it, an unheaded story read — on screen and to a screen
+ * reader moving by heading — as part of "Input". `part="activity"` renders
+ * that heading alone, outside the Input section, and the page places it
+ * directly above the write-up. With no Input shown it renders nothing and the
+ * story needs no heading, exactly as before.
+ * ⛔ ONLY WHAT IS RECORDED IS RENDERED — a part with nothing in it is left out,
+ * and an activity with nothing in any part renders nothing at all, the same
+ * rule the counts strip and the tag row follow.
+ * ⛔ The words are ui-strings (toc.*), so a Malayalam page takes the CMS's
+ * approved wording and English until one exists.
+ */
+import { getT } from '../lib/content';
+import { toLocale } from '../lib/i18n';
+import { durationParts, formatInr, numberFormat, paragraphsOf, tocParts, EVIDENCE_KEY, type ActivityToc, type TocPlace } from '../lib/toc';
+
+interface Props {
+  toc: ActivityToc;
+  part?: TocPlace | 'activity';
+}
+const { toc, part = 'all' } = Astro.props;
+const locale = toLocale(Astro.currentLocale);
+const t = await getT(locale);
+const nf = numberFormat(locale);
+const parts = part === 'activity' ? { input: false, output: false, outcome: false, learnings: false, any: false } : tocParts(toc, part);
+const activityHeading = part === 'activity' && tocParts(toc, 'input').any;
+const duration = durationParts(toc.hours);
+const paragraphs = paragraphsOf;
+---
+
+{
+  parts.any && (
+    <section class={`activitytoc activitytoc--${part}`}>
+      {parts.input && (
+        <div class="activitytoc__part">
+          <h2 class="activitytoc__h">{t('toc.input')}</h2>
+          <dl class="activitytoc__facts">
+            {toc.materials && (
+              <div>
+                <dt>{t('toc.materials')}</dt>
+                <dd>{toc.materials}</dd>
+              </div>
+            )}
+            {toc.outsideHelp && (
+              <div>
+                <dt>{t('toc.outside_help')}</dt>
+                <dd>{toc.outsideHelp}</dd>
+              </div>
+            )}
+            {duration && (
+              <div>
+                <dt>{t('toc.time')}</dt>
+                <dd>{t(duration.key, { n: nf.format(duration.n) })}</dd>
+              </div>
+            )}
+            {toc.costInr !== null && (
+              <div>
+                <dt>{t('toc.cost')}</dt>
+                <dd>{formatInr(toc.costInr, locale)}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      )}
+      {parts.output && (
+        <div class="activitytoc__part">
+          <h2 class="activitytoc__h">{t('toc.output')}</h2>
+          <ul class="activitytoc__made">
+            {toc.made.map((m) => (
+              <li>
+                {/* A real space after the number, not only a margin: screen
+                    readers and copied text otherwise get "50Tote bags". */}
+                {m.quantity !== null && <><span class="activitytoc__n">{nf.format(m.quantity)}</span>{' '}</>}
+                {m.item}
+                {/* Same words as madeLine() in the report; the number is only wrapped here to set its weight. */}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {parts.outcome && (
+        <div class="activitytoc__part">
+          <h2 class="activitytoc__h">{t('toc.outcome')}</h2>
+          {toc.outcomes.length > 0 && (
+            <ul class="activitytoc__outcomes">
+              {toc.outcomes.map((name) => (
+                <li>{name}</li>
+              ))}
+            </ul>
+          )}
+          {paragraphs(toc.evidence).map((p) => (
+            <p>{p}</p>
+          ))}
+          {toc.evidence && toc.evidenceType && <p class="activitytoc__how">({t(EVIDENCE_KEY[toc.evidenceType])})</p>}
+        </div>
+      )}
+      {parts.learnings && (
+        <div class="activitytoc__part">
+          <h2 class="activitytoc__h">{t('toc.learnings')}</h2>
+          {paragraphs(toc.learnings).map((p) => (
+            <p>{p}</p>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
+
+{activityHeading && <h2 class="activitytoc__h activitytoc__h--activity">{t('toc.activity')}</h2>}

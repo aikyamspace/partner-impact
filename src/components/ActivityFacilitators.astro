@@ -1,0 +1,121 @@
+---
+/**
+ * Who ran this session, by name. Owner's ruling, 17 Sep 2026: facilitators
+ * appear on the page as well as in the record PDF.
+ *
+ * ⛔ THE RESOLUTION LIVES IN `facilitatorsOf()` (content.ts), NOT HERE. The
+ * page, the share card and the PDF all answer "who facilitated" and must not
+ * answer it differently. This receives the answer and renders it.
+ *
+ * ⚠️ THIS PUBLISHES REAL PEOPLE'S NAMES on a public page — the owner chose that
+ * over a PDF-only alternative, so a facilitator is credited where a reader can
+ * see it and not only where a funder can.
+ *
+ * ⛔⛔ IT USED TO RENDER NOTHING WHEN NOBODY WAS NAMED. It now prints a generic
+ * line instead — owner's ruling, 18 Sep 2026. An unnamed facilitator is not "no
+ * facilitator", and the page saying so is better than the page being silent
+ * about 138 of 253 activities.
+ * ⚠️ The count in the strip above still says how many there were; this line says
+ * that somebody did it. They are different facts and both are true.
+ */
+import type { HostCredit } from '../lib/content';
+import { getT } from '../lib/content';
+import { toLocale } from '../lib/i18n';
+import { localeHref } from '../lib/links';
+
+interface Props {
+  facilitators: HostCredit[];
+  /**
+   * ⛔⛔ `attendance.facilitators` — the RECORDED COUNT, and it is here for one
+   * reason: to stop the generic line below claiming a facilitator on an activity
+   * whose data says there was none. Three published activities record 0 (the
+   * cats settling in, a water leak, unexpected visitors from nature) — they are
+   * observations of the room, not sessions somebody ran.
+   * ⚠️ NULL IS NOT ZERO, and the distinction decides the output: null means
+   * nobody wrote the number down, so somebody probably did facilitate and the
+   * generic line is right; 0 means nobody was there, so it is a false claim.
+   * The field's own note in Directus says exactly this.
+   */
+  recordedCount: number | null;
+}
+const { facilitators, recordedCount } = Astro.props;
+const locale = toLocale(Astro.currentLocale);
+const t = await getT(locale);
+
+/**
+ * The line is built as a list of PARTS — literal text or a person — rather than
+ * assembled from string fragments in the markup.
+ *
+ * ⛔ WHY IT IS NOT A `.join(', ')` WITH A TRANSLATED "and": Malayalam does not
+ * join names with a conjunction. It lists them and closes with എന്നിവർ ("these
+ * people"), which sits AFTER the last name, not between the last two. So the
+ * joining is one whole string with `{first}` and `{last}` slots, and the
+ * surrounding text can land wherever that language needs it.
+ * ⭐ Same reasoning as `storycard.hosts_joined`; this is its page-side twin.
+ */
+type Part = { text: string } | { person: HostCredit };
+
+function nameParts(people: HostCredit[]): Part[] {
+  if (people.length === 1) return [{ person: people[0] }];
+
+  // Everything before the last name is a plain comma list; the final join is
+  // whatever the language's own template says.
+  const template = t('activities.facilitators_joined');
+  const [lead, rest = ''] = template.split('{first}');
+  const [middle, tail = ''] = rest.split('{last}');
+
+  const parts: Part[] = [{ text: lead }];
+  people.slice(0, -1).forEach((person, i) => {
+    if (i > 0) parts.push({ text: ', ' });
+    parts.push({ person });
+  });
+  parts.push({ text: middle });
+  parts.push({ person: people[people.length - 1] });
+  parts.push({ text: tail });
+  return parts;
+}
+
+const [before, after = ''] = t('activities.facilitated_by').split('{names}');
+const parts = facilitators.length > 0 ? nameParts(facilitators) : [];
+---
+
+{
+  /* ⛔⛔ NOBODY NAMED IS STILL SOMETHING TO SAY — owner's ruling, 18 Sep 2026:
+     "Publicly it should just say facilitator as the default." 138 of 253
+     published activities are run by an organisation with no person recorded.
+     ⛔ THE ORGANISATION'S NAME USED TO GO HERE and does not any more. Printing
+     "Facilitated by Olimalar Foundation" asserts that an ORGANISATION was in the
+     room; nobody recorded who actually was, and saying so plainly is the
+     truthful answer. `facilitatorsOf()` no longer returns organisations at all.
+     ⭐ THE WORDING IS A DIRECTUS STRING, so the owner can change it — including
+     to name the organisation — without a code change or a deploy.
+     ⚠️ This is NOT a placeholder row in `as_host`. He considered one and chose
+     against it: /partners/ lists every published host with no content filter, so
+     a fake "Facilitator" person would show up there as a real partner with its
+     own page. */
+  parts.length === 0 && recordedCount !== 0 && (
+    <p class="activityfacilitators wrap wrap--wide">{t('activities.facilitated_unnamed')}</p>
+  )
+}
+
+{
+  parts.length > 0 && (
+    <p class="activityfacilitators wrap wrap--wide">
+      {before}
+      {parts.map((part) =>
+        'text' in part ? (
+          part.text
+        ) : part.person.slug ? (
+          /* A facilitator with a host record has a page; one without is still
+             named, just not linked. */
+          <a href={localeHref(`/partners/${part.person.slug}/`, Astro.currentLocale)}>
+            {part.person.name}
+          </a>
+        ) : (
+          part.person.name
+        ),
+      )}
+      {after}
+    </p>
+  )
+}

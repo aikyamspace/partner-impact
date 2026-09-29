@@ -1,0 +1,59 @@
+---
+/**
+ * One activity, in the same order and with the same components as its page on
+ * aikyam.space: photo, counts, title, facilitators, then the three groups —
+ * Input | Activity (the write-up) + Output | Outcome + Learnings — and the
+ * report (PDF) to download.
+ */
+import Site from '../../layouts/Site.astro';
+import Photo from '../../components/Photo.astro';
+import ActivityCounts from '../../components/ActivityCounts.astro';
+import ActivityFacilitators from '../../components/ActivityFacilitators.astro';
+import ActivityToc from '../../components/ActivityToc.astro';
+import { activities } from '../../lib/strapi';
+import { href } from '../../lib/links';
+
+export async function getStaticPaths() {
+  return (await activities()).map((a) => ({ params: { slug: a.slug }, props: { activity: a } }));
+}
+const { activity } = Astro.props;
+const date = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(activity.date));
+---
+
+<Site title={activity.title} description={activity.excerpt} current="activities">
+  {activity.photo && (
+    <div class="aphoto">
+      <Photo photo={activity.photo} widths={[640, 960, 1280, 1600]} sizes="(min-width: 68rem) 64rem, 100vw" eager />
+    </div>
+  )}
+  <ActivityCounts
+    participants={activity.attendance.participants}
+    facilitators={activity.attendance.facilitators}
+    audience={activity.attendance.audience}
+  >
+    <Fragment slot="actions">
+      <a class="report-link" href={href(`/activities/${activity.slug}/record.pdf`)} download={`${activity.slug}.pdf`}>Report</a>
+    </Fragment>
+  </ActivityCounts>
+  <div class="wrap wrap--wide ahead">
+    <p class="kicker">{date}</p>
+    <h1>{activity.title}</h1>
+  </div>
+  <ActivityFacilitators facilitators={activity.facilitators} recordedCount={activity.attendance.facilitators} />
+  <div class="wrap wrap--wide">
+    <div class="entrygrid">
+      <article class="entrygrid__main">
+        <ActivityToc toc={activity.toc} part="input" />
+        <ActivityToc toc={activity.toc} part="activity" />
+        <div class="entry__body entry__body--activity" set:html={activity.bodyHtml} />
+        <ActivityToc toc={activity.toc} part="output" />
+        <ActivityToc toc={activity.toc} part="results" />
+        {activity.club && (
+          <div class="entry__topics">
+            <a class="month-filter__chip" href={href(`/clubs/${activity.club.slug}/`)}>{activity.club.name}</a>
+          </div>
+        )}
+      </article>
+    </div>
+  </div>
+</Site>

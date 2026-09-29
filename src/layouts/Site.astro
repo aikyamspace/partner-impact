@@ -1,0 +1,64 @@
+---
+/**
+ * Every page's frame: aikyam.space's design system with the partner's colour.
+ * The partner's brand colour is a band across the top and the tint of quiet
+ * surfaces; headings and buttons use its darkened, text-safe shade (brand.ts).
+ */
+import '../styles/base.css';
+import '../styles/partner.css';
+import { partner } from '../lib/partner';
+import { brandColours } from '../lib/brand';
+import { href } from '../lib/links';
+import { host } from '../lib/strapi';
+
+interface Props {
+  title: string;
+  description?: string | null;
+  current?: 'impact' | 'activities' | 'clubs';
+}
+const { title, description, current } = Astro.props;
+const h = await host();
+const c = brandColours(partner.primary);
+const pageTitle = title === partner.name ? `${partner.name}: impact` : `${title} — ${partner.name}`;
+const nav = [
+  { key: 'impact', label: 'Impact', path: '/' },
+  { key: 'activities', label: 'Activities', path: '/activities/' },
+];
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    {/* ⛔ `html:root`, not `:root`: Astro links the bundled stylesheet AFTER
+        this tag, and at equal specificity colors.css's own --aik-green won. */}
+    <style is:inline set:html={`html:root{--partner:${c.primary};--aik-green:${c.ink};--aik-green-ink:${c.ink};--aik-green-wash:color-mix(in oklab, ${c.primary} 12%, #f7f2ec);}`}></style>
+  </head>
+  <body>
+    <header class="psite-head">
+      <div class="wrap wrap--wide psite-head__row">
+        <a class="psite-head__name" href={href('/')}>{h.name}</a>
+        <nav class="psite-nav" aria-label="Site">
+          {nav.map((n) => (
+            <a href={href(n.path)} aria-current={current === n.key ? 'page' : undefined}>{n.label}</a>
+          ))}
+          <a href={partner.website}>{new URL(partner.website).hostname.replace(/^www\./, '')}</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="psite-foot">
+      <div class="wrap wrap--wide">
+        <p>
+          Activity records kept with <a href={`https://aikyam.space/partners/${partner.host}/`}>aikyam space</a>.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

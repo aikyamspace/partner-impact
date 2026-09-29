@@ -1,0 +1,490 @@
+/* aikyam space design system — typography
+ *
+ * ========================================================================
+ * THE THREE DECISIONS IN THIS FILE, BEFORE ANY NUMBER
+ *
+ *   1. ONE FAMILY, ALL SANS — Figtree.  Replaces Poppins + Lora + the system
+ *                                       stack, which is three families today.
+ *   2. EIGHT COMBINATIONS, NOT 35.      One live article page carries 35
+ *                                       size/leading/weight/family
+ *                                       combinations on 120 text elements.
+ *   3. TABULAR FIGURES ON ANYTHING      ⭐ Poppins CANNOT DO THIS. Measured,
+ *      THAT STACKS.                        and it is the decisive argument.
+ * ========================================================================
+ *
+ * ⚠️ Everything below was measured in Chrome on 9 August 2026, in a real
+ * 390 x 844 same-origin frame against the live aikyam.space, and in real
+ * Figtree confirmed against the recorded fingerprint before anything was
+ * counted: "Water Metro closes 21:00" at 100px sets 1143.93px in Figtree
+ * against 1027.84px for a deliberately bogus family name as the negative
+ * control. 1143.93 is the same figure catsofkochi's airbnb-study.md recorded
+ * independently, so the face under the ruler is the face that ships.
+ */
+:root {
+  /* --- Family ----------------------------------------------------------- */
+  /* ⭐⭐ WHY ONE FAMILY, AND WHY THIS ONE — the argument is a measurement,
+   * not a preference.
+   *
+   * WHAT THE SITE SHIPS TODAY (measured, 9 Aug 2026):
+   *
+   *   Poppins 600/700   headings and card titles     ← Google Fonts, blocking
+   *   Lora 400-700      paragraphs, and ONLY `p`     ← Google Fonts, blocking
+   *   -apple-system     everything else: nav, buttons, tags, bylines, dates,
+   *                     card meta, footer, form labels
+   *
+   * Three families on one post card: system for the tag, Poppins for the
+   * title, Lora for the excerpt, system again for the byline. The theme's own
+   * `--font-headings` and `--font-body` tokens still resolve to the system
+   * stack; Poppins and Lora arrive through two override rules further down the
+   * cascade. So the type is not a pairing anyone chose — it is a paint job on
+   * two selectors.
+   *
+   * ⛔⛔ AND THE DECIDING MEASUREMENT: POPPINS HAS NO TABULAR FIGURES.
+   * Tested three ways in the DOM at 100px — plain, `font-variant-numeric:
+   * tabular-nums`, and `font-feature-settings: "tnum" 1`:
+   *
+   *     Poppins   "0" = 64.60px   "1" = 36.20px   in ALL THREE states
+   *     Lora      "0" = 62.10px   "1" = 36.41px   plain
+   *     Lora      "0" = 65.00px   "1" = 65.00px   with tabular-nums   ✅
+   *     Figtree   "0" = 62.34px   "1" = 62.34px   with tabular-nums   ✅
+   *
+   * A "1" is 56% the width of a "0" in Poppins and no CSS can change it. This
+   * site's whole job is a schedule — a column of dates, times, and how many
+   * people a room holds — and the face currently setting every heading and
+   * every card title cannot align a column of numbers. That is structural, not
+   * cosmetic.
+   *
+   * ⭐ FIGTREE, and this is REUSE rather than a fresh choice. Eight open faces
+   * were measured against Airbnb Cereal on 6 Aug 2026 (catsofkochi
+   * docs/research/airbnb-study.md §1) and Figtree won on x-height-to-cap
+   * (0.714 against Cereal's 0.730), descender (21.2 against 21.8), and working
+   * tabular figures. Re-verified here on this site, in the frame, today:
+   * fingerprint 1143.93 ✅ · tabular-nums 62.34 = 62.34 ✅ · rupee present ✅.
+   *
+   * ⚠️ THE RUNNER-UP, NAMED SO IT IS NOT RE-ARGUED FROM SCRATCH: keep Lora,
+   * drop Poppins. Lora has working tabular figures and it is the one part of
+   * the live type that measures well. It was refused because the two surfaces
+   * that carry this site's job — the post card and the schedule row — are set
+   * in the NON-serif face, and a serif that reaches only `p` is not an
+   * editorial voice, it is one selector. If the owner wants a serif voice back,
+   * the honest version is a serif that sets headings AND body, not `p` alone.
+   *
+   * ⛔ SELF-HOST IT. Every page opens FIVE third-party origins —
+   * fonts.googleapis.com, fonts.gstatic.com, cdn.jsdelivr.net,
+   * cdnjs.cloudflare.com and analytics.aikyamhq.com — each a DNS lookup and a
+   * TLS handshake before a byte of content arrives, on a connection this reader
+   * may be paying for by the megabyte. Two of the five are the type, and
+   * self-hosting removes both.
+   *
+   * ⚠️ A SIXTH, img.spacergif.org, appears on SOME posts only. It is not the
+   * theme — it is the `poster` attribute of an uploaded <video> in the post
+   * body, a transparent third-party spacer standing in for a poster frame. A
+   * content problem, not a type one, and named here so nobody hunts for it in
+   * the theme.
+   *
+   * ⚠️ AND THE FACE COUNT DEPENDS ON WHAT YOU COUNT. Declared on the Google
+   * Fonts link: 12 combinations (Lora 8, Poppins 4). Fetched from gstatic:
+   * 3-4 woff2 files. Resolved to loaded FontFace entries: 5-6. Fetched is
+   * lower than resolved because these are variable fonts; resolved is lower
+   * than declared because a browser only downloads what the page's text
+   * matches. All three are correct measurements of different things, and a
+   * document that quotes one without saying which reads as a contradiction.
+   * ⛔ Weigh the file you actually ship — Google serves different woff2 builds
+   * to different user agents, so no CDN byte count belongs in front of anyone
+   * as "what a reader downloads". */
+  /* ⭐⭐ 'Noto Sans Malayalam' SITS SECOND, AND THE ORDER IS THE MECHANISM.
+   * The owner's choice, 18 Aug 2026, closing the open decision recorded
+   * below ("NOT CHOSEN HERE, deliberately"). Its stated condition — no
+   * Malayalam copy to test a candidate against — stopped holding when 297
+   * approved translations went live across 268 pages of aikyam.space.
+   *
+   * ⭐ NO unicode-range IS NEEDED HERE, and adding one would be worse. A CSS
+   * font stack already falls through PER CHARACTER: Figtree renders every
+   * Latin glyph it has, and because it declares no Malayalam coverage at
+   * all, each Malayalam character falls to the next family that does.
+   * Scoping by hand would duplicate what the browser already does correctly
+   * and add a second place to get the range wrong.
+   *
+   * ⛔ VERIFIED THE WAY THIS FILE INSISTS ON — from declared coverage, not a
+   * rendered width. The Google Fonts CSS2 response for the combined request
+   * returns 200, names both families, and carries a @font-face whose
+   * unicode-range covers U+0D00. The block below records why a width
+   * comparison nearly gave the wrong answer once; it would have again.
+   *
+   * ⛔⛔ THE CONSUMING SITE MUST ALSO REQUEST THE FAMILY. A name in this stack
+   * that nothing loads is silently ignored — it does not error. aikyam.space
+   * asks for Figtree and Noto Sans Malayalam in ONE stylesheet URL across its
+   * 16 page heads; a malformed family or weight there makes Google return an
+   * error for the WHOLE request, so a typo does not lose Malayalam, it loses
+   * Figtree too. */
+  --font-ui:
+    'Figtree', 'Noto Sans Malayalam', 'Figtree Fallback: Roboto',
+    'Figtree Fallback: Helvetica Neue', 'Figtree Fallback: Arial', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+
+  /* ⚠️ Name the metric-matched fallback families exactly as fonts.css declares
+     them. An unmatched name in a font stack does not error — it is silently
+     skipped, and a reader whose download fails falls straight through to raw
+     Roboto with none of the size-adjusted metrics. Invisible until it happens
+     to somebody real. */
+
+  /* ⭐ ₹ RENDERS IN FIGTREE. SETTLED 10 Aug 2026, AFTER TWO WRONG ANSWERS.
+   *
+   * ⚠️ THREE MEASUREMENTS OF ONE SYMBOL, AND THE FIRST TWO WERE BOTH WRONG — in
+   * opposite directions. Recorded in full because the failure modes are the lesson,
+   * not the glyph:
+   *
+   *   1. "PRESENT" — right answer, invalid evidence. The proof published here was
+   *      "₹ = 51.95px against 72.22px for a private-use tofu, therefore present".
+   *      Both numbers came from the FALLBACK: when a family lacks BOTH the character
+   *      and the PUA control, both render in the fallback, where they are simply two
+   *      different glyphs with two different widths. THE TEST PASSES EVERY TIME.
+   *      ⛔ A broken test that reaches the right answer is still broken, and it is
+   *      worse than a wrong answer because nothing prompts a re-check.
+   *
+   *   2. "ABSENT, and latin-ext will not help" — wrong answer, from a STRING match:
+   *      `grep -ci "20b9"` over the served CSS returns 0, because the range is
+   *      written `U+20AD-20C0` and the literal "20b9" never appears in it.
+   *      ⛔ Never string-match a numeric range. Parse it.
+   *
+   *   3. ✅ THE ANSWER, measured on THE REAL SENTENCE on the SERVED page —
+   *      `₹2,000–5,000 a month` at design.folktaler.com/aikyam-space/clubs/,
+   *      not a constructed case:
+   *
+   *          the ₹ in the page          9.60px
+   *          the same ₹ as Figtree      9.60px   ← identical
+   *          the same ₹ as fallback     9.09px   ← different
+   *
+   *      and from the browser's own font matching, which is the mechanism that
+   *      decides which face draws a glyph:
+   *
+   *          U+20B9  ₹   COVERED by 4 loaded Figtree faces
+   *          U+0100  Ā   covered      ← positive control: latin-ext IS live
+   *          U+0D05  അ   NOT covered  ← negative control: the test can say no
+   *
+   * ⭐⭐ SO THE DEFECT WAS DOCUMENTARY, NOT RENDERED. The page was always fine;
+   * this file's description of it was wrong. ⛔ That distinction is worth holding
+   * onto: three of the four wrong answers here were about the DOCUMENTATION, and
+   * the one experiment that looked most convincing — 56.80 rising to 62.20 when
+   * latin-ext was added — was a correct measurement of a CONSTRUCTED latin-only
+   * case that the kits never served. Measuring the real artefact settled in one
+   * pass what four days of adjacent measurements could not.
+   *
+   * ⭐ THE CONTROLS ARE THE POINT. A coverage test with no positive control cannot
+   * distinguish "present" from "the subset never loaded"; with no negative control
+   * it cannot distinguish "present" from "this test always says yes". Attempt 1 had
+   * neither.
+   *
+   * FOR THE RECORD, so the no-op is not proposed a third time: Google returns BOTH
+   * `latin` and `latin-ext` for the exact request the kits make. latin's currency
+   * range is U+2000-206F and U+20AC (euro only); latin-ext carries U+20AD-20C0,
+   * which contains U+20B9. Nothing needs adding.
+   *
+   * ⚠️ And `&text=` returning a face declaring `unicode-range: U+20b9` proves
+   * nothing about the default subsetting — that is simply how Google emits a
+   * text-subsetted response. */
+
+  /* ⛔⛔ FIGTREE HAS NO MALAYALAM, AND THIS SITE'S SESSIONS RUN IN MALAYALAM.
+   *
+   * Verified from the source rather than inferred: the Google Fonts CSS2 response
+   * for Figtree declares exactly TWO subsets — `latin` and `latin-ext` — and no
+   * declared unicode-range touches the Malayalam block U+0D00–0D7F.
+   *
+   * ⚠️ A width test alone does NOT settle this and nearly misled me here. A single
+   * Malayalam letter set in Figtree measures 123.88px against 125.78px for a bogus
+   * family name — different, which looks like coverage and is not. It is two
+   * different fallback chains resolving to two different faces. The unicode-range
+   * declaration is the authority; a rendered width is not. (Same trap recorded for
+   * `fonts.check()`, which returns true for a font that is not there.)
+   *
+   * ⭐ SO "ONE FAMILY" IS AN ABSOLUTE THAT BREAKS SILENTLY THE MOMENT ONE MALAYALAM
+   * WORD IS PUBLISHED — and every club on this site is taught in Malayalam, so that
+   * is a question of when, not whether. The line will render in an unpredictable
+   * system face at unpredictable metrics, mid-sentence.
+   *
+   * ⛔ Do not "solve" this by avoiding Malayalam on the page. The readers speak it.
+   *
+   * The answer is a second family declared for a second script, which is not a
+   * violation of the one-family rule but its correct Indic form:
+   *
+   *     ONE LATIN FAMILY + ONE MALAYALAM FAMILY, EACH WITH ITS OWN unicode-range,
+   *     CHOSEN SO THE TWO SIT AT THE SAME OPTICAL SIZE.
+   *
+   * ⚠️ NOT CHOSEN HERE, deliberately — picking it needs the same measured bake-off
+   * Figtree won (x-height/cap against the Latin face at a shared size, working
+   * tabular figures, and a rendered comparison at 19px), and no Malayalam copy
+   * exists yet to test against. Named as an open decision rather than guessed. */
+
+  /* ======================================================================
+   * ⭐⭐ TABULAR FIGURES — the rule, and where it applies
+   *
+   * This site prints dates down a column ("August 1", "August 2", ...), times,
+   * a room capacity ("25-35 participants"), and money. Those appear in rows,
+   * one under another, and a column of numbers that does not align reads as an
+   * estimate.
+   *
+   * Apply it to the ELEMENT that holds the number, not to :root. Setting it
+   * globally gives running prose tabular figures, where they open ugly gaps
+   * around a "1".
+   *
+   *     TABULAR FIGURES MATTER WHERE NUMBERS STACK VERTICALLY.
+   *
+   * ✅ Gated: the schedule row · a session's date and time · a capacity ·
+   *    a price · the trust row's values · a card's date line (cards stack).
+   * ⛔ Not gated: a number inside a sentence · a button label. A lone number
+   *    has no neighbour to align with and forcing it there actively hurts.
+   * ====================================================================== */
+  --figures-aligned: tabular-nums;
+  --figures-prose: proportional-nums;
+
+  /* ======================================================================
+   * THE LADDER — eight combinations, and what each one is FOR
+   *
+   *   token             phone   desktop   weight   job
+   *   ---------------------------------------------------------------------
+   *   --type-micro       14        14      500     kickers, counts, chip
+   *                                                labels, the label under a
+   *                                                number
+   *   --type-small       16        16      400     captions, bylines, the
+   *                                                second and third card rows
+   *   --type-ui          17        17      500     buttons, controls, the
+   *                                                schedule row, anything a
+   *                                                thumb aims at
+   *   --type-body        19        20      400     running prose. THE FLOOR.
+   *   --type-subheading  21        23      600     h3
+   *   --type-heading     25        28      600     h2 — every h2, one size
+   *   --type-display     30        40      600     h1, once per page
+   *   --type-figure      32        40      700     ⭐ the ONE set-piece
+   *   ---------------------------------------------------------------------
+   *
+   * ⚠️ --type-small (16/400) and --type-ui (17/500) sit one pixel apart. That
+   * is deliberate: one is READ, the other is AIMED AT. They are told apart by
+   * weight and role, not size. If you are choosing between them by how they
+   * look, you have the wrong element.
+   *
+   * ⛔ WHAT IT REPLACES. Measured across the live site, 9 Aug 2026:
+   *
+   *   H1, ten static pages     33.4px Poppins 700, CENTRED
+   *   H1, article template     29.5px Poppins 700, left    (38.4px desktop)
+   *   H1, /latest/             19.9px SYSTEM SANS 700      ← wrong family AND
+   *                                                          40% smaller
+   *   H1, /signin/ /signup/    32.0px Poppins 700
+   *   H2 in prose              26.3 · 28.0 (one of them pure #000)
+   *   card title               19.9 phone · 20.8 · 22.4 · 28.8 · 41.6 desktop
+   *   H3 on /team/             24.7px — SMALLER than the h2 on /content-policy/
+   *   body prose               16px phone / 17.6px desktop, at THREE leadings
+   *                            on the same page: 1.5, 1.6 and 1.7
+   *   card excerpt             14.4px Lora at weight 500
+   *   tags, bylines, dates     12.8px · 11.2px separator
+   *
+   * Four H1 sizes, two H1 families, two H1 alignments, three leadings for one
+   * body size, and a page whose h3 is smaller than another page's h2.
+   * ====================================================================== */
+
+  /* ⛔ THE ONE THING REFUSED OUTRIGHT: a body size under 19px.
+   *
+   * Airbnb sets 14px body — 123 elements on their listing page. They can
+   * afford it: their reader is indoors on a sofa choosing between two
+   * holidays. aikyam.space's reader is a neighbour in Fort Kochi on a phone,
+   * frequently an entry-level Android, deciding whether to walk over on
+   * Saturday. 19px is the most-tested body size in the world for a reader who
+   * is not comfortable: GOV.UK sets 19px on large screens AND small ones, and
+   * does not shrink it on a phone.
+   *
+   * The live site sets 16px on a phone. This raises it, and pages get taller.
+   * That is the correct trade and it is not up for re-argument without a new
+   * reader. */
+  --type-body: clamp(1.1875rem, 1.156rem + 0.17vw, 1.25rem); /* 19 → 20px */
+  --leading-body: 1.55;
+
+  /* ⭐ ADDED 21 Aug 2026. Underline distance from the baseline, as a TOKEN
+     rather than a per-rule value. There were 21 hardcoded `text-underline-offset: 3px`
+     declarations in components.css, and a `:lang(ml)` rule written specifically
+     to clear Malayalam descenders sat above every one of them doing nothing:
+     at rest there is no underline to offset, and the hover and focus rules that
+     DO draw one each hardcoded 3px, overriding it in the only state where the
+     problem can occur. Rendered at 3px the line runs straight THROUGH the ൂ and
+     ട്ടി clusters; at 0.4em it clears them.
+     ⛔ This is the pattern this file already argues for, in its own words about
+     the leading block: "REDEFINING THE TOKENS, not the components. Every
+     component already draws from these names, so nothing per-component changes
+     and no component can be forgotten." Fixing 21 hover rules one at a time
+     reproduces exactly the forgetting that comment exists to prevent. */
+  --underline-offset: 3px;
+
+  /* ⭐ 1.55, and the number came from the site's own worst case. The live
+     theme's --line-height-base is 1.6 and prose renders at 1.7 (16/27.2 on a
+     phone, 17.6/29.92 on desktop). 1.7 is looser than GOV.UK (1.32), the BBC
+     (1.375), the Guardian (1.40), Craig Mod (1.50) and Airbnb (1.29-1.43) —
+     on no stated evidence, and it is a large part of why the August schedule
+     page is 12,854px tall on a phone. 1.55 keeps a sans body comfortable at
+     19px and takes 8.8% off the height of every paragraph. ⚠️ That is a
+     paragraph figure, not a page figure — most of the schedule page's height
+     is the 2em paragraph gap and the missing structure, not the leading. */
+
+  /* Headings. Airbnb separates by WEIGHT AND SPACE, not size — their
+     heading:body ratio is 22/14 = 1.57. Ours lands at 25/19 = 1.32 on a phone
+     and 28/20 = 1.40 on desktop, tighter than theirs, because our body is
+     larger. The separation is made up by weight (600 against 400) and by air.
+     ⚠️ If a heading ever stops reading as a heading, add SPACE before you add
+     size. */
+  --type-display: clamp(1.875rem, 1.55rem + 1.65vw, 2.5rem); /* 30 → 40  h1 */
+  --type-heading: clamp(1.5625rem, 1.47rem + 0.5vw, 1.75rem); /* 25 → 28  h2 */
+  --type-subheading: clamp(1.3125rem, 1.26rem + 0.3vw, 1.4375rem); /* 21 → 23 */
+  --leading-display: 1.15;
+  --leading-heading: 1.2;
+
+  /* The three small steps. ⛔ FIXED, not fluid: they label things whose size
+     does not change with the viewport, and a caption that grows on desktop
+     starts competing with the body it belongs to. */
+  --type-ui: 1.0625rem; /* 17px */
+  --type-small: 1rem; /* 16px */
+  --type-micro: 0.875rem; /* 14px */
+  /* ⚠️ 1.3 MAY BE TOO TIGHT FOR MALAYALAM — flagged, NOT acted on. Malayalam stacks
+     vowel signs above and below the base letter and needs more vertical room than Latin
+     at the same size; an indicative reading put a Malayalam line box at 27px against
+     Latin's 24.5 at 19px. ⛔ DO NOT CHANGE THE VALUE ON THAT NUMBER: it was measured
+     against macOS's fallback face, not a real Malayalam font on a Fort Kochi Android,
+     which is the only rendering that matters here. Test it once a face is chosen. */
+  --leading-ui: 1.3; /* LATIN. Malayalam overrides it — see the :lang(ml) block below. */
+  --leading-tight: 1.375;
+
+  /* ⛔ 14px IS THE FLOOR AND NOTHING GOES BELOW IT. The live site sets its
+     category tags at 12.8px and the tag separator at 11.2px. Airbnb's floor is
+     12px, the Guardian's and the BBC's are both 12px — and all three of those
+     readers are indoors on a device they chose. */
+
+  /* ⭐ The one set-piece. A page may have ONE. Tabular by construction,
+     because the only thing it is ever used for is a number — how many people
+     came, how many sessions ran, how many hours the room was open. */
+  --type-figure: clamp(2rem, 1.8rem + 1vw, 2.5rem); /* 32 → 40px */
+  --leading-figure: 1.1;
+
+  /* --- Paragraph rhythm ------------------------------------------------- */
+  /* Half the line height, in em so it tracks the leading rather than drifting
+     away from it. The live site sets margin-bottom: 32px on a 16px paragraph —
+     2em, which is nearly three times this and is the other half of why the
+     schedule page is 12,854px tall. */
+  --paragraph-gap: 0.775em;
+
+  /* --- Weight ----------------------------------------------------------- */
+  /* Four semantic weights. The variable font gives them all for no extra
+     bytes, and 500 does most of the emphasis work.
+     ⛔⛔ CORRECTED 13 Aug 2026 — this used to say "do not add 300 or 800";
+     the owner's new brand guidelines call for Figtree weight 300, so that
+     blanket "never" no longer holds. The Google Fonts URL on every page
+     now requests `wght@300..700` (the whole variable axis range, not four
+     discrete static instances — same two woff2 files either way, zero
+     extra bytes or requests) so weight 300 is LOADED, but no semantic
+     token below uses it yet — this is availability, not adoption. Nothing
+     in this system currently sets `font-weight: 300`; whatever component
+     needs it (a wordmark, per team-lead) is a separate, later change.
+     ⚠️ ⛔⛔ VERIFY BY COMPUTED AXIS VALUE, NEVER BY LOOKING, once something
+     does request 300 — browsers synthesise heavier weights but never
+     lighter ones, so `font-weight: 300` against a face declaring only
+     400–700 would silently MATCH THE 400 FACE EXACTLY, no warning, no
+     visual difference, and a visual review would pass on the wrong
+     weight. Check the resolved font-face/axis value in the browser. 800
+     is still not requested and still not a token — that half of the old
+     rule is unchanged. */
+  --weight-regular: 400;
+  --weight-medium: 500; /* the workhorse: controls, card headlines, numbers */
+  --weight-semibold: 600; /* headings, and only headings */
+  --weight-bold: 700; /* the set-piece figure, and emphasis in prose */
+
+  /* --- Tracking --------------------------------------------------------- */
+  --tracking-display: -0.01em;
+  --tracking-micro: 0.04em; /* the only place uppercase is allowed */
+}
+
+/* ---------------------------------------------------------------------------
+ * ⛔ WHAT THIS SYSTEM WILL NOT DO WITH TYPE, each with the page that taught it
+ *
+ * 1. NO CENTRED BODY TEXT. Measured 9 Aug 2026: /clubs/ and /subscribe/ centre
+ *    their body paragraphs — five lines of centred serif prose on a 358px
+ *    phone column. Airbnb centres a title and a facts line on mobile and
+ *    nothing else. We centre nothing, including the h1: ten static pages centre
+ *    theirs while the article template does not, so left-aligned is already the
+ *    majority behaviour on the pages people actually read.
+ *
+ * 2. NO SECOND FAMILY. See the family block above.
+ *
+ * 3. NO TYPE SIZE AS A CATEGORY SIGNAL. Words encode.
+ *
+ * 4. ⭐ NO SMALL TYPE FOR LONG TEXT. Small type is for SHORT text. The card
+ *    excerpt is 14.4px and runs to three lines; the caption under every
+ *    photograph is 13.6px italic in #808080 (3.95:1 — failing). Both are the
+ *    same mistake: a block long enough to need its own measure is a block set
+ *    too small.
+ *
+ * 5. NO EMOJI IN THE CHROME. The live nav is eight items and every one of them
+ *    opens with an emoji — including a cookie for "Clubs", which on a website
+ *    reads as a consent control before it reads as a biscuit. Emoji render
+ *    differently on every platform, cannot inherit a colour, and are announced
+ *    by screen readers under their CLDR names ("handshake, medium-dark skin
+ *    tone" before "Co-Impact"). Eight words do not need pictures.
+ * ------------------------------------------------------------------------- */
+
+/* No media query anywhere in this file. Every fluid step interpolates, so there
+   is no width at which the text jumps. The breakpoints exist for LAYOUT. */
+
+/* ══════════════════════════════════════════════════════════════════════
+ * ⭐⭐ MALAYALAM LEADING — MEASURED, not estimated. Owner's go-ahead,
+ * 19 Aug 2026, once a real Malayalam face existed to test against.
+ *
+ * The caveat above forbade acting on its own indicative figure because it
+ * was taken against macOS's FALLBACK face. Re-measured on the live site
+ * with Noto Sans Malayalam loaded, 390px viewport, line-height:normal:
+ *
+ *     Malayalam in Noto Sans Malayalam   25px at 19px   ratio 1.32
+ *     Latin in Figtree                   23px at 19px   ratio 1.21
+ *
+ * ⛔ THE OLD FIGURE WOULD HAVE OVER-CORRECTED. It implied 1.42 for
+ * Malayalam; the real face needs 1.32. Loosening on 1.42 would have gone
+ * roughly twice as far as required.
+ *
+ * ⛔ BODY IS DELIBERATELY NOT TOUCHED. --leading-body is 1.55, already 18%
+ * clear of Malayalam's natural 1.32 — it was never the problem, and
+ * loosening it would make running text go slack. What WAS too tight is
+ * every leading BELOW 1.32: display (1.15), heading (1.2) and ui (1.3)
+ * all sat under the height Malayalam physically occupies, because the
+ * script stacks vowel signs above and below the base letter.
+ *
+ * ⭐ REDEFINING THE TOKENS, not the components. Every component already
+ * draws from these names, so nothing per-component changes and no
+ * component can be forgotten.
+ * ══════════════════════════════════════════════════════════════════════ */
+:lang(ml) {
+  /* 0.4em = 9.2px at 23px. Measured: Malayalam descends 7.75px against Latin's
+     4.88px, so 3px cuts through the glyph and this clears it. */
+  --underline-offset: 0.4em;
+  /* ⛔ RAISED AGAIN 21 Aug 2026, owner's own table. The first pass cleared
+     Malayalam's 1.32 natural floor, which stops lines overlapping — but
+     clearing the floor is not the same as being comfortable to read. On a
+     real two-line Malayalam headline the top matras of one line and the
+     bottom glyphs of the next still crowd at 1.3. His reasoning, kept
+     because it is the test to re-apply if these are ever revisited: "top
+     matras and bottom glyphs don't clash on multi-line titles". */
+  --leading-display: 1.45; /* was 1.3, and 1.15 for Latin */
+  --leading-heading: 1.4; /* was 1.35 */
+  --leading-ui: 1.4; /* was 1.3 for Latin — unchanged this pass */
+  --leading-tight: 1.45; /* was 1.375 for Latin — unchanged this pass */
+  /* ⭐ The one the earlier pass deliberately skipped, on the argument that
+     1.55 was "already 18% clear of Malayalam's natural 1.32". True, and the
+     wrong comparison: English body runs at 1.28x ITS OWN natural leading and
+     Malayalam at 1.17x its own, so Malayalam prose was relatively TIGHTER
+     than English prose in the same component — and running prose is most of
+     what anyone reads. Design review derived 1.69 independently; the owner's
+     table says 1.7–1.8. 1.75 sits inside both. */
+  --leading-body: 1.75; /* was 1.55, the Latin value */
+
+  /* ⛔ NO NEGATIVE TRACKING IN MALAYALAM, EVER. Indic shaping engines join
+     characters into ligatures and position matras by cluster; negative
+     letter-spacing is applied between the shaped glyphs and pulls those
+     clusters apart or on top of each other. Measured on a live Malayalam
+     headline before this: letter-spacing computed to -0.4px, inherited from
+     --tracking-display, which exists to tighten LATIN display type.
+     ⚠️ Latin keeps its -0.01em; this only neutralises it where the script
+     cannot take it. */
+  --tracking-display: normal;
+}

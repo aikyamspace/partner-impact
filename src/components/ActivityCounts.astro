@@ -1,0 +1,118 @@
+---
+/**
+ * One activity's counts strip — /activities/{slug}/, from the activity-page
+ * design handoff, 14 Sep 2026: how many took part, how many facilitated, how
+ * many watched. The home page's `.homecounts` strip (HeroMeta.astro,
+ * components.css) with one activity's own numbers, sitting directly under the
+ * hero.
+ *
+ * ⛔ MODELLED ON SpaceCounts.astro, NOT AN EXTENSION OF IT — the handoff's own
+ * instruction, and the same call SpaceCounts itself made against HeroMeta.
+ * Those four items and their keys are the home page's; these three are an
+ * activity's. Same classes, so no new CSS.
+ *
+ * ⛔⛔ THIS PUTS ATTENDANCE ABOVE THE WRITE-UP, WHICH REVERSES THE OWNER'S
+ * RULING OF 22 AUG 2026 — recorded verbatim in activities/[slug].astro, where
+ * the reversal is dated and attributed. Reversed BY THE OWNER, 14 Sep 2026,
+ * after seeing the spaces pages. Not a builder's preference, and not a
+ * decision this component may re-take.
+ *
+ * Rules carried over from the old `.attendance` chips UNCHANGED — none of them
+ * is re-opened by the move, and none may be re-litigated here:
+ * ⛔ ZERO RENDERS NOTHING, PER ITEM. 0 does not mean nobody facilitated, it
+ * means nobody typed a number, and a reader cannot tell those apart. A null
+ * was already suppressed; the `> 0` filter below covers both at once.
+ * ⛔⛔ THE STRIP IS ALWAYS PRESENT AS OF 16 Sep 2026, AND THAT REVERSES THE RULE
+ * THIS COMMENT USED TO STATE. It said "IF NO COUNT HAS A VALUE THE WHOLE STRIP
+ * IS ABSENT" and made the caller test it. The strip now also carries the page's
+ * two actions — copy-link and download-the-card — at its right end, so an
+ * absent strip means a reader loses both controls because nobody typed an
+ * attendance figure. Owner's ruling, 16 Sep 2026, asked and answered directly.
+ * ⭐ What is unchanged: an empty COUNTS LIST renders nothing — no heading over
+ * an empty row, no dash, no "0 took part". The <ul> simply is not emitted. The
+ * per-item `> 0` filter below is untouched.
+ * ⚠️ 0 of 253 published activities have no counts today, so nothing exercises
+ * this path yet. It exists for the first activity an editor saves without them.
+ * ⚠️ FIXED ORDER, NEVER SORTED BY VALUE: took part, facilitators, watched.
+ * Sorting by value makes the same page reorder itself between visits.
+ * ⛔ THE FIGURE AND ITS LABEL ARE ONE STRING TO A SCREEN READER — "10 took
+ * part". No aria-hidden on the number, no separate label, no splitting the two
+ * across elements. The figure is split out at `{n}` ONLY so it can be styled.
+ *
+ * ⛔ NOTHING HERE IS A LINK, so nothing is underlined — unlike SpaceCounts,
+ * whose activities figure links `?space=`. All three take the same ink and
+ * weight (`.homecounts__n`), because what separates items on this site is what
+ * is clickable, and here nothing is. ⚠️ Do not give one of them a destination
+ * without the others: that is the owner's ruling of 25 Aug 2026 (HeroMeta).
+ *
+ * ⭐ THE WORDS LIVE IN DIRECTUS — `activities.counts.participants|
+ * facilitators|audience`, each "{n} label", and each with a `_one` twin for
+ * the singular: t() has no plural support and "1 Facilitators" shipped on
+ * every activity page once already. The pick is made HERE, in code, on
+ * `n === 1`. No markup is ever built from a Directus value, and a `{n}` an
+ * editor deletes drops the figure and leaves the label.
+ * ⛔ ALL SIX KEYS ALSO EXIST IN `scripts/ui-strings.json` — a key that lives
+ * only in Directus renders as its own name against a fresh or restored
+ * instance, and the warning for that is DEV-gated, so a production build fails
+ * silently.
+ * ⚠️ Their Malayalam is deliberately EMPTY, not machine Malayalam: the seeder
+ * treats empty as absent and English shows until the owner approves a wording
+ * per key. Standing rule.
+ *
+ * ⚠️ FROZEN AT BUILD TIME, like every other count on this site. If that stops
+ * being acceptable the fix is a rebuild, not a browser fetch.
+ */
+import { DEFAULT_LOCALE, type Locale } from '../lib/i18n';
+import { getT } from '../lib/content';
+
+interface Props {
+  locale?: string;
+  /** `as_activity.attendance` — `null` means nobody recorded it, NOT zero. */
+  participants: number | null;
+  facilitators: number | null;
+  audience: number | null;
+}
+const { locale, participants, facilitators, audience } = Astro.props;
+const loc = (locale as Locale) ?? DEFAULT_LOCALE;
+const t = await getT(loc);
+
+/* ⭐ Indian digit grouping on both locales — the same formatter HeroMeta and
+   SpaceCounts use. Unreachable above 999 on today's real attendance figures;
+   consistent with the rest of the site regardless. */
+const nf = new Intl.NumberFormat(loc === 'ml' ? 'ml-IN' : 'en-IN');
+
+function item(key: string, value: number | null) {
+  const n = value ?? 0;
+  const [before, ...rest] = t(n === 1 ? `${key}_one` : key).split('{n}');
+  return { before, figure: rest.length > 0 ? nf.format(n) : null, after: rest.join('{n}'), n };
+}
+const items = [
+  item('activities.counts.participants', participants),
+  item('activities.counts.facilitators', facilitators),
+  item('activities.counts.audience', audience),
+].filter(({ n }) => n > 0);
+---
+
+<div class="homecounts">
+  <div class="wrap wrap--wide homecounts__row">
+    {
+      /* ⛔ The list is omitted entirely when nothing was counted, rather than
+         rendered empty — an empty <ul> is still a list to a screen reader. The
+         actions in the slot below are what keep the strip worth drawing. */
+      items.length > 0 && (
+        <ul class="homecounts__list">
+          {items.map(({ before, figure, after }) => (
+            <li>
+              {before}
+              {figure && <span class="homecounts__n">{figure}</span>}
+              {after}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {/* Pushed to the right end by `margin-left:auto` on .homecounts__actions —
+        so with no counts they sit alone on the row, still right-aligned. */}
+    <div class="homecounts__actions"><slot name="actions" /></div>
+  </div>
+</div>
