@@ -14,7 +14,9 @@ interface Props {
   activities: Activity[];
 }
 const { activities } = Astro.props;
+// Also in the script below, which runs in the browser and cannot import them.
 const SHOWN = 8;
+const SHOWN_PHONE = 4;
 const RECENT_DAYS = 90;
 const newest = Math.max(...activities.map((a) => Date.parse(a.date)));
 const since = newest - RECENT_DAYS * 24 * 60 * 60 * 1000;
@@ -39,14 +41,14 @@ const groups = [...counts.entries()]
       <button type="button" class="month-filter__chip" data-tag-filter="all" aria-pressed="true">
         All ({activities.length})
       </button>
-      {groups.map((g, i) => (
-        <button type="button" class="month-filter__chip" data-tag-filter={g.slug} aria-pressed="false" data-tag-extra={i >= SHOWN ? '' : undefined}>
+      {groups.map((g) => (
+        <button type="button" class="month-filter__chip" data-tag-filter={g.slug} aria-pressed="false">
           {g.name} ({g.count})
         </button>
       ))}
-      {groups.length > SHOWN && (
+      {groups.length > SHOWN_PHONE && (
         <button type="button" class="month-filter__chip" data-tag-more aria-expanded="false" data-label-more="+{n} more" data-label-less="Show fewer">
-          +{groups.length - SHOWN} more
+          +{Math.max(0, groups.length - SHOWN)} more
         </button>
       )}
     </div>
@@ -65,13 +67,20 @@ const groups = [...counts.entries()]
 
     const render = () => {
       for (const card of cards) card.hidden = chosen !== 'all' && !tagsOf.get(card)!.has(chosen);
-      for (const chip of chips) {
-        const key = chip.dataset.tagFilter!;
-        chip.setAttribute('aria-pressed', String(key === chosen));
-        if (chip.hasAttribute('data-tag-extra')) chip.hidden = !expanded && key !== chosen;
-      }
+      // The first few tags in the row's order (fewer on a phone); the chosen tag
+      // is never folded, and the button never reads "+0 more" (review, 30 Sep 2026).
+      const shownCount = window.matchMedia('(max-width: 40rem)').matches ? 4 : 8;
+      let folded = 0;
+      chips
+        .filter((c) => c.dataset.tagFilter !== 'all')
+        .forEach((chip, i) => {
+          const fold = !expanded && i >= shownCount && chip.dataset.tagFilter !== chosen;
+          chip.hidden = fold;
+          if (fold) folded++;
+        });
+      for (const chip of chips) chip.setAttribute('aria-pressed', String(chip.dataset.tagFilter === chosen));
       if (more) {
-        const folded = chips.filter((c) => c.hasAttribute('data-tag-extra') && c.hidden).length;
+        more.hidden = chips.length - 1 <= shownCount || (!expanded && folded === 0);
         more.setAttribute('aria-expanded', String(expanded));
         more.textContent = expanded ? more.dataset.labelLess! : more.dataset.labelMore!.replace('{n}', String(folded));
       }
