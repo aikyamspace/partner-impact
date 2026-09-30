@@ -240,3 +240,8 @@ body {
 .homeactions .homeactions__cta--outline {
   border-color: color-mix(in oklab, var(--partner) 30%, white);
 }
+
+/* The tag filter row above the activities grid (TagFilter.astro). */
+.tagfilter {
+  margin-block-end: var(--space-6);
+}

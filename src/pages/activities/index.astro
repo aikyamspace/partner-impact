@@ -1,7 +1,8 @@
 ---
-/** Every published activity of the partner, newest first. */
+/** Every published activity of the partner, newest first, with the tag filter row (30 Sep 2026). */
 import Site from '../../layouts/Site.astro';
 import ActivityCards from '../../components/ActivityCards.astro';
+import TagFilter from '../../components/TagFilter.astro';
 import { activities, host } from '../../lib/strapi';
 
 const [all, h] = await Promise.all([activities(), host()]);
@@ -12,6 +13,7 @@ const [all, h] = await Promise.all([activities(), host()]);
     <section class="impact-head">
       <h1>Activities</h1>
     </section>
+    <TagFilter activities={all} />
     <ActivityCards activities={all} />
   </div>
 </Site>

@@ -1,0 +1,97 @@
+---
+/**
+ * The tag filter row above the activities grid — aikyam.space's tag row
+ * (/activities/, 30 Sep 2026) for a partner site. Owner's calls: a full row of
+ * every tag; the most-used first, a few at a time behind "+N more"; ordered by
+ * recent use; each tag pill on an activity page and in a report links here as
+ * `?tag=<slug>`.
+ * Cards carry `data-tag` (ActivityCards.astro). Without script the row stays
+ * hidden and every card shows.
+ */
+import type { Activity } from '../lib/strapi';
+
+interface Props {
+  activities: Activity[];
+}
+const { activities } = Astro.props;
+const SHOWN = 8;
+const RECENT_DAYS = 90;
+const newest = Math.max(...activities.map((a) => Date.parse(a.date)));
+const since = newest - RECENT_DAYS * 24 * 60 * 60 * 1000;
+const counts = new Map<string, { name: string; count: number; recent: number }>();
+for (const a of activities) {
+  const seen = new Map<string, string>();
+  for (const tag of Object.values(a.toc.tags).flat()) seen.set(tag.slug, tag.name);
+  const recent = Date.parse(a.date) >= since;
+  for (const [slug, name] of seen) {
+    const was = counts.get(slug) ?? { name, count: 0, recent: 0 };
+    counts.set(slug, { name, count: was.count + 1, recent: was.recent + (recent ? 1 : 0) });
+  }
+}
+const groups = [...counts.entries()]
+  .map(([slug, v]) => ({ slug, ...v }))
+  .sort((a, b) => b.recent - a.recent || b.count - a.count || a.name.localeCompare(b.name));
+---
+
+{
+  groups.length > 0 && (
+    <div class="month-filter tagfilter" role="group" aria-label="Filter by tag" data-tag-filter-row hidden>
+      <button type="button" class="month-filter__chip" data-tag-filter="all" aria-pressed="true">
+        All ({activities.length})
+      </button>
+      {groups.map((g, i) => (
+        <button type="button" class="month-filter__chip" data-tag-filter={g.slug} aria-pressed="false" data-tag-extra={i >= SHOWN ? '' : undefined}>
+          {g.name} ({g.count})
+        </button>
+      ))}
+      {groups.length > SHOWN && (
+        <button type="button" class="month-filter__chip" data-tag-more aria-expanded="false" data-label-more="+{n} more" data-label-less="Show fewer">
+          +{groups.length - SHOWN} more
+        </button>
+      )}
+    </div>
+  )
+}
+
+<script>
+  const row = document.querySelector<HTMLElement>('[data-tag-filter-row]');
+  const cards = Array.from(document.querySelectorAll<HTMLElement>('.acards > li'));
+  if (row && cards.length > 0) {
+    const tagsOf = new Map(cards.map((c) => [c, new Set((c.dataset.tag ?? '').split(' ').filter(Boolean))]));
+    const chips = Array.from(row.querySelectorAll<HTMLButtonElement>('[data-tag-filter]'));
+    const more = row.querySelector<HTMLButtonElement>('[data-tag-more]');
+    let chosen = 'all';
+    let expanded = false;
+
+    const render = () => {
+      for (const card of cards) card.hidden = chosen !== 'all' && !tagsOf.get(card)!.has(chosen);
+      for (const chip of chips) {
+        const key = chip.dataset.tagFilter!;
+        chip.setAttribute('aria-pressed', String(key === chosen));
+        if (chip.hasAttribute('data-tag-extra')) chip.hidden = !expanded && key !== chosen;
+      }
+      if (more) {
+        const folded = chips.filter((c) => c.hasAttribute('data-tag-extra') && c.hidden).length;
+        more.setAttribute('aria-expanded', String(expanded));
+        more.textContent = expanded ? more.dataset.labelLess! : more.dataset.labelMore!.replace('{n}', String(folded));
+      }
+    };
+
+    // A `?tag=` that matches no card is ignored, so the page never opens empty.
+    const asked = new URLSearchParams(location.search).get('tag');
+    if (asked && cards.some((c) => tagsOf.get(c)!.has(asked))) chosen = asked;
+
+    for (const chip of chips) {
+      chip.addEventListener('click', () => {
+        chosen = chip.dataset.tagFilter!;
+        render();
+      });
+    }
+    more?.addEventListener('click', () => {
+      expanded = !expanded;
+      render();
+    });
+    row.hidden = false;
+    render();
+  }
+</script>

@@ -72,6 +72,7 @@ function count(g: Doc | null | undefined): number | null {
 }
 
 const nonEmpty = (s: string | null | undefined) => (s && s.trim() ? s : null);
+const tagsOf = (list: Doc[] | null | undefined) => (list ?? []).map((t: Doc) => ({ name: t.name as string, slug: t.slug as string }));
 
 /** Owner-written SEO overrides from Strapi; null = not written, use the page's own text. */
 export interface Seo {
@@ -129,6 +130,13 @@ export function activities(): Promise<Activity[]> {
       'populate[club][fields][1]': 'name',
       'populate[facilitators][fields][0]': 'name',
       'populate[facilitators][fields][1]': 'kind',
+      // Tags, owner's calls 30 Sep 2026: one shared list, five fields.
+      ...Object.fromEntries(
+        ['input_tags', 'output_tags', 'outcome_tags', 'learning_tags', 'activity_tags'].flatMap((f) => [
+          [`populate[${f}][fields][0]`, 'name'],
+          [`populate[${f}][fields][1]`, 'slug'],
+        ]),
+      ),
       'populate[hosts][fields][0]': 'name',
       'populate[hosts][fields][1]': 'kind',
       'populate[hosts][fields][2]': 'archived',
@@ -170,10 +178,22 @@ export function activities(): Promise<Activity[]> {
         hours: a.hours == null ? null : Number(a.hours),
         costInr: a.cost_inr ?? null,
         made: (a.made ?? []).filter((m: Doc) => m.item?.trim()).map((m: Doc) => ({ item: m.item, quantity: m.quantity ?? null })),
-        outcomes: (a.outcomes ?? []).slice().sort((x: Doc, y: Doc) => (x.sort ?? 0) - (y.sort ?? 0)).map((o: Doc) => o.name),
+        // Outcome TAGS since 30 Sep 2026; an activity whose live version predates
+        // the copy (an editor had an unpublished change) keeps its old outcomes.
+        outcomes: (a.outcome_tags?.length
+          ? a.outcome_tags
+          : (a.outcomes ?? []).slice().sort((x: Doc, y: Doc) => (x.sort ?? 0) - (y.sort ?? 0))
+        ).map((o: Doc) => o.name),
         evidence: nonEmpty(a.outcome_evidence),
         evidenceType: a.evidence_type ?? null,
         learnings: nonEmpty(a.learnings),
+        tags: {
+          input: tagsOf(a.input_tags),
+          output: tagsOf(a.output_tags),
+          outcome: tagsOf(a.outcome_tags),
+          learning: tagsOf(a.learning_tags),
+          activity: tagsOf(a.activity_tags),
+        },
       },
       };
     });

@@ -1,0 +1,30 @@
+---
+/**
+ * A row of tag pills under one part of an activity — Input, Activity, Output,
+ * Outcome or Learnings. Owner's calls, 30 Sep 2026: one shared tag list; pills
+ * under each part (the way Outcomes already showed); every pill is a link to
+ * the activities list filtered by that tag, `/activities/?tag=<slug>`.
+ * ⛔ No tags, no row: nothing renders, not an empty list.
+ */
+import { localeHref } from '../lib/links';
+import type { Tag } from '../lib/toc';
+
+interface Props {
+  tags: Tag[];
+  /** The Outcome part's pills keep the Outcome look (a sunk ground). */
+  variant?: 'outcome';
+}
+const { tags, variant } = Astro.props;
+---
+
+{
+  tags.length > 0 && (
+    <ul class={`tagpills${variant ? ` tagpills--${variant}` : ''}`}>
+      {tags.map((tag) => (
+        <li>
+          <a href={localeHref(`/activities/?tag=${encodeURIComponent(tag.slug)}`, Astro.currentLocale)}>{tag.name}</a>
+        </li>
+      ))}
+    </ul>
+  )
+}

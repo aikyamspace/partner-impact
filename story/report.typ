@@ -248,14 +248,34 @@
     // height wherever it lands.
     if here().position().y <= MARGIN + 4mm { hide(rule) } else { rule }
   })
-  let has-input = toc != none and toc.input.len() > 0
+  // ⭐ TAG PILLS, owner's calls 30 Sep 2026: each part ends with its tags as
+  // pills, like the page, and each pill is a live link to the activities list
+  // filtered by that tag. Outcome pills are filled (the look Outcomes already
+  // had on the page); the other parts' pills are outlined, so a sheet with
+  // tags on every part reads them as captions, not as five more blocks.
+  let tag-row(tags, filled: false, above: 8pt) = if tags.len() > 0 {
+    block(above: above, {
+      set text(size: 9pt, weight: 500)
+      tags.map(tg => box(
+        inset: (x: 5pt, y: 3pt), outset: (y: 1pt), radius: 7pt,
+        fill: if filled { aik_paper_sunk } else { none },
+        stroke: if filled { none } else { 0.5pt + aik_rule },
+        link(tg.url, tg.name),
+      )).join(h(4pt))
+    })
+  }
+  let has-input = toc != none and (toc.input.len() > 0 or toc.tags.input.len() > 0)
   if has-input {
     toc-head(toc.headings.input)
-    {
-      set text(size: 10pt)
-      grid(columns: (auto, 1fr), column-gutter: 4mm, row-gutter: 5pt,
-        ..toc.input.map(f => (text(fill: aik_ink_quiet)[#f.label], [#f.value])).flatten())
-    }
+    // The facts and their tags on one page (see the write-up's note below).
+    block(breakable: false, {
+      if toc.input.len() > 0 {
+        set text(size: 10pt)
+        grid(columns: (auto, 1fr), column-gutter: 4mm, row-gutter: 5pt,
+          ..toc.input.map(f => (text(fill: aik_ink_quiet)[#f.label], [#f.value])).flatten())
+      }
+      tag-row(toc.tags.input, above: if toc.input.len() > 0 { 8pt } else { 0pt })
+    })
     // The first group's line (owner's three groups, 29 Sep 2026).
     group-line()
     toc-head(toc.headings.activity)
@@ -264,7 +284,7 @@
   // The account of what happened, in the words somebody wrote on the day.
   // Paragraphs flow with PARA between them; a quote or a list is a block with
   // PARA above and below, which REPLACES the paragraph spacing beside it.
-  for b in blocks {
+  let write-up-block(b) = {
     if b.kind == "quote" {
       // ⛔⛔ SET APART AND UNLABELLED. The owner ruled against a "What we learnt"
       // heading for the website and that ruling holds in print: the rule and
@@ -283,15 +303,34 @@
       par[#b.text]
     }
   }
+  // ⭐ The Activity part's tags close the write-up, and ⛔ never alone: the
+  // last block and the tag row are kept on ONE page, or a page break can
+  // strand the pills at the top of the next page, cut off from what they
+  // describe (seen in the first test sheet, 30 Sep 2026).
+  let activity-tags = if toc != none { toc.tags.activity } else { () }
+  for (i, b) in blocks.enumerate() {
+    if i == blocks.len() - 1 and activity-tags.len() > 0 {
+      block(breakable: false, above: PARA, below: 0pt, {
+        write-up-block(b)
+        tag-row(activity-tags)
+      })
+    } else {
+      write-up-block(b)
+    }
+  }
+  if blocks.len() == 0 { tag-row(activity-tags) }
 
   // Output stays in the Activity group, straight after the write-up.
-  if toc != none and toc.made.len() > 0 {
+  if toc != none and (toc.made.len() > 0 or toc.tags.output.len() > 0) {
     toc-head(toc.headings.output, above: SECTION)
-    list(..toc.made)
+    block(breakable: false, {
+      if toc.made.len() > 0 { list(..toc.made) }
+      tag-row(toc.tags.output, above: if toc.made.len() > 0 { 8pt } else { 0pt })
+    })
   }
   // The third group, Outcome + Learnings, opens with the second line.
   let has-results = toc != none and (toc.outcomes.len() > 0
-    or toc.evidence.len() > 0 or toc.learnings.len() > 0)
+    or toc.evidence.len() > 0 or toc.learnings.len() > 0 or toc.tags.learning.len() > 0)
   if has-results {
     group-line()
     let has-outcome = toc.outcomes.len() > 0 or toc.evidence.len() > 0
@@ -299,7 +338,11 @@
       toc-head(toc.headings.outcome)
       // The outcome labels: a block, so its 10pt `below` REPLACES paragraph
       // spacing before the first evidence paragraph, however many there are.
-      if toc.outcomes.len() > 0 {
+      // Outcome tags as filled pills; an activity whose live version still
+      // carries the old per-club outcomes (content.ts) keeps the text line.
+      if toc.tags.outcome.len() > 0 {
+        block(sticky: true, below: 10pt, tag-row(toc.tags.outcome, filled: true, above: 0pt))
+      } else if toc.outcomes.len() > 0 {
         block(sticky: true, below: 10pt, text(weight: 500)[#toc.outcomes.join(" · ")])
       }
       // ⛔ "(We observed it)" qualifies the evidence, so it is the last LINE of
@@ -316,9 +359,16 @@
         }
       }
     }
-    if toc.learnings.len() > 0 {
+    if toc.learnings.len() > 0 or toc.tags.learning.len() > 0 {
       toc-head(toc.headings.learnings, above: if has-outcome { SECTION } else { 0pt })
-      for p in toc.learnings { par[#p] }
+      // The last paragraph and the tags on one page.
+      let ls = toc.learnings
+      for (i, p) in ls.enumerate() {
+        if i == ls.len() - 1 and toc.tags.learning.len() > 0 {
+          block(breakable: false, { par[#p]; tag-row(toc.tags.learning) })
+        } else { par[#p] }
+      }
+      if ls.len() == 0 { tag-row(toc.tags.learning, above: 0pt) }
     }
   }
 

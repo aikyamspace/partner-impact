@@ -10,6 +10,7 @@ import Photo from '../../components/Photo.astro';
 import ActivityCounts from '../../components/ActivityCounts.astro';
 import ActivityFacilitators from '../../components/ActivityFacilitators.astro';
 import ActivityToc from '../../components/ActivityToc.astro';
+import TagPills from '../../components/TagPills.astro';
 import StoryCardLink from '../../components/StoryCardLink.astro';
 import RecordLink from '../../components/RecordLink.astro';
 import { activities } from '../../lib/strapi';
@@ -60,6 +61,7 @@ const date = new Intl.DateTimeFormat('en-IN', { weekday: 'long', day: 'numeric',
         <ActivityToc toc={activity.toc} part="input" />
         <ActivityToc toc={activity.toc} part="activity" />
         <div class="entry__body entry__body--activity" set:html={activity.bodyHtml} />
+        <TagPills tags={activity.toc.tags.activity} />
         <ActivityToc toc={activity.toc} part="output" />
         <ActivityToc toc={activity.toc} part="results" />
         {activity.club && (
