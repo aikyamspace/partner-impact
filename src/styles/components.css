@@ -4769,6 +4769,41 @@ a.partnerpills__pill:hover .partnerpills__name {
   font-size: var(--type-small);
   color: var(--text-secondary);
 }
+/* Tag pills under each part (TagPills.astro), owner's calls 30 Sep 2026: pills
+   like the Outcome row, each a link to /activities/?tag=. The Outcome row keeps
+   its filled look; the other parts' pills are OUTLINED, so up to five rows on
+   one page read as captions to their part, not as five competing blocks. */
+.tagpills {
+  list-style: none;
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.tagpills a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 var(--space-3);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  text-decoration: none;
+  border: var(--rule-hairline) solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+}
+.tagpills a:hover {
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+}
+.tagpills--outcome {
+  margin: 0 0 var(--space-3);
+}
+.tagpills--outcome a {
+  background: var(--surface-quiet);
+  border-color: transparent;
+}
 /* A narrow phone: the label sits above its value rather than squeezing it. */
 @media (max-width: 30rem) {
   .activitytoc__facts {

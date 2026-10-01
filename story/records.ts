@@ -129,6 +129,13 @@ export async function records(siteUrl: string, base: string) {
         evidence,
         how: evidence.length > 0 && toc.evidenceType ? `(${t(EVIDENCE_KEY[toc.evidenceType])})` : null,
         learnings: paragraphsOf(toc.learnings),
+        // Each part's tags as pills linking to this site's filtered list (owner, 30 Sep 2026).
+        tags: Object.fromEntries(
+          Object.entries(toc.tags).map(([part, list]) => [
+            part,
+            list.map((tag: { name: string; slug: string }) => ({ name: tag.name, url: `${origin}/activities/?tag=${encodeURIComponent(tag.slug)}` })),
+          ]),
+        ),
       },
       url: encodeURI(href),
       urlShown: href.replace(/^https?:\/\//, '').replace(/\/$/, ''),

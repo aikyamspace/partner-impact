@@ -159,6 +159,9 @@ function guardText(records, coverage, logger) {
     toc.input = toc.input.map((f) => ({ ...f, value: clean(f.value) }));
     toc.made = toc.made.map(clean);
     toc.outcomes = toc.outcomes.map(clean);
+    for (const part of Object.keys(toc.tags)) {
+      toc.tags[part] = toc.tags[part].map((tag) => ({ ...tag, name: clean(tag.name) }));
+    }
     toc.evidence = toc.evidence.map(clean);
     toc.learnings = toc.learnings.map(clean);
     if (lost.size) {

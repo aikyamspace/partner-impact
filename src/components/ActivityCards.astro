@@ -15,7 +15,7 @@ const fmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'long', ye
 
 <ul class="acards">
   {activities.map((a) => (
-    <li class="acard">
+    <li class="acard" data-tag={[...new Set(Object.values(a.toc.tags).flat().map((t) => t.slug))].join(' ') || undefined}>
       <a href={href(`/activities/${a.slug}/`)}>
         {a.photo ? <Photo photo={a.photo} widths={[400, 640, 900]} sizes="(min-width: 60rem) 20rem, 90vw" /> : <div class="acard__nophoto" aria-hidden="true" />}
         <span class="acard__meta">{fmt.format(new Date(a.date))}{a.club && <> · {a.club.name}</>}</span>

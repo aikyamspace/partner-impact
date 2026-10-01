@@ -19,9 +19,13 @@
  * ⛔ ONLY WHAT IS RECORDED IS RENDERED — a part with nothing in it is left out,
  * and an activity with nothing in any part renders nothing at all, the same
  * rule the counts strip and the tag row follow.
+ * ⭐ TAGS, owner's calls 30 Sep 2026: each part ends with its own row of tag
+ * pills (TagPills.astro), each a link to the activities list filtered by it.
+ * The Activity part's tags follow the write-up on the page itself.
  * ⛔ The words are ui-strings (toc.*), so a Malayalam page takes the CMS's
  * approved wording and English until one exists.
  */
+import TagPills from './TagPills.astro';
 import { getT } from '../lib/content';
 import { toLocale } from '../lib/i18n';
 import { durationParts, formatInr, numberFormat, paragraphsOf, tocParts, EVIDENCE_KEY, type ActivityToc, type TocPlace } from '../lib/toc';
@@ -72,11 +76,13 @@ const paragraphs = paragraphsOf;
               </div>
             )}
           </dl>
+          <TagPills tags={toc.tags.input} />
         </div>
       )}
       {parts.output && (
         <div class="activitytoc__part">
           <h2 class="activitytoc__h">{t('toc.output')}</h2>
+          {toc.made.length > 0 && (
           <ul class="activitytoc__made">
             {toc.made.map((m) => (
               <li>
@@ -88,17 +94,25 @@ const paragraphs = paragraphsOf;
               </li>
             ))}
           </ul>
+          )}
+          <TagPills tags={toc.tags.output} />
         </div>
       )}
       {parts.outcome && (
         <div class="activitytoc__part">
           <h2 class="activitytoc__h">{t('toc.outcome')}</h2>
-          {toc.outcomes.length > 0 && (
-            <ul class="activitytoc__outcomes">
-              {toc.outcomes.map((name) => (
-                <li>{name}</li>
-              ))}
-            </ul>
+          {/* Outcome tags are links (TagPills); an activity still showing its
+              old per-club outcomes (see content.ts) keeps plain pills. */}
+          {toc.tags.outcome.length > 0 ? (
+            <TagPills tags={toc.tags.outcome} variant="outcome" />
+          ) : (
+            toc.outcomes.length > 0 && (
+              <ul class="activitytoc__outcomes">
+                {toc.outcomes.map((name) => (
+                  <li>{name}</li>
+                ))}
+              </ul>
+            )
           )}
           {paragraphs(toc.evidence).map((p) => (
             <p>{p}</p>
@@ -112,6 +126,7 @@ const paragraphs = paragraphsOf;
           {paragraphs(toc.learnings).map((p) => (
             <p>{p}</p>
           ))}
+          <TagPills tags={toc.tags.learning} />
         </div>
       )}
     </section>

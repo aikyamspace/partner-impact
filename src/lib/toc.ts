@@ -15,6 +15,24 @@ export const EVIDENCE_KEY: Record<EvidenceType, string> = {
   Measured: 'toc.evidence_measured',
 };
 
+/** One tag from the shared Tag list (owner's calls, 30 Sep 2026). `slug` is the
+ *  filter's address: /activities/?tag=<slug>. */
+export interface Tag {
+  name: string;
+  slug: string;
+}
+
+/** An activity's tags, one list per part it describes. */
+export interface ActivityTags {
+  input: Tag[];
+  output: Tag[];
+  outcome: Tag[];
+  learning: Tag[];
+  activity: Tag[];
+}
+
+export const NO_TAGS: ActivityTags = { input: [], output: [], outcome: [], learning: [], activity: [] };
+
 export interface ActivityToc {
   materials: string | null;
   outsideHelp: string | null;
@@ -24,11 +42,13 @@ export interface ActivityToc {
   costInr: number | null;
   /** What was made: `quantity` null when the story gives no number. */
   made: { item: string; quantity: number | null }[];
-  /** Outcome names from the club's list, in the club's order. */
+  /** The outcomes shown: the activity's Outcome tags; for an activity whose
+   *  live version predates tags (30 Sep 2026), its old per-club outcomes. */
   outcomes: string[];
   evidence: string | null;
   evidenceType: EvidenceType | null;
   learnings: string | null;
+  tags: ActivityTags;
 }
 
 /**
@@ -80,10 +100,10 @@ export type TocPlace = 'input' | 'output' | 'results' | 'all';
  */
 export function tocParts(toc: ActivityToc, place: TocPlace = 'all') {
   const has = {
-    input: !!(toc.materials || toc.outsideHelp || durationParts(toc.hours) || toc.costInr !== null),
-    output: toc.made.length > 0,
+    input: !!(toc.materials || toc.outsideHelp || durationParts(toc.hours) || toc.costInr !== null || toc.tags.input.length > 0),
+    output: toc.made.length > 0 || toc.tags.output.length > 0,
     outcome: !!(toc.outcomes.length > 0 || toc.evidence),
-    learnings: !!toc.learnings,
+    learnings: !!toc.learnings || toc.tags.learning.length > 0,
   };
   const input = has.input && (place === 'input' || place === 'all');
   const output = has.output && (place === 'output' || place === 'all');

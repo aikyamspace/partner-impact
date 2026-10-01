@@ -7,7 +7,7 @@ SRC=${1:-$HOME/aikyam-space}
 DST=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$DST/src/styles" "$DST/src/components" "$DST/src/lib" "$DST/story" "$DST/public"
 cp -R "$SRC/src/styles/." "$DST/src/styles/"
-cp "$SRC/src/components/ActivityToc.astro" "$SRC/src/components/ActivityCounts.astro" "$SRC/src/components/ActivityFacilitators.astro" "$DST/src/components/"
+cp "$SRC/src/components/ActivityToc.astro" "$SRC/src/components/ActivityCounts.astro" "$SRC/src/components/ActivityFacilitators.astro" "$SRC/src/components/TagPills.astro" "$DST/src/components/"
 cp "$SRC/src/lib/toc.ts" "$SRC/src/lib/blocks-to-html.ts" "$DST/src/lib/"
 cp -R "$SRC/story/fonts" "$DST/story/"
 cp "$SRC/story/report.typ" "$SRC/story/render-report.typ" "$SRC/story/font-coverage.json" "$DST/story/"

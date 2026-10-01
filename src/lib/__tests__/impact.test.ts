@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { impactOf } from '../impact';
+import { NO_TAGS } from '../toc';
 
-const toc = (over = {}) => ({ materials: null, outsideHelp: null, hours: null, costInr: null, made: [], outcomes: [], evidence: null, evidenceType: null, learnings: null, ...over });
+const toc = (over = {}) => ({ materials: null, outsideHelp: null, hours: null, costInr: null, made: [], outcomes: [], evidence: null, evidenceType: null, learnings: null, tags: NO_TAGS, ...over });
 const act = (participants: number | null, tocOver = {}) => ({ attendance: { participants, facilitators: null, audience: null }, toc: toc(tocOver) });
 
 describe('impactOf', () => {
