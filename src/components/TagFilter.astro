@@ -39,7 +39,7 @@ const groups = [...counts.entries()]
   groups.length > 0 && (
     <div class="month-filter tagfilter" role="group" aria-label="Filter by tag" data-tag-filter-row hidden>
       <button type="button" class="month-filter__chip" data-tag-filter="all" aria-pressed="true">
-        All ({activities.length})
+        All tags ({activities.length})
       </button>
       {groups.map((g) => (
         <button type="button" class="month-filter__chip" data-tag-filter={g.slug} aria-pressed="false">
